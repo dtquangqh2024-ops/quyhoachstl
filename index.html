@@ -1269,6 +1269,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-provlbl { background: none; border: 0; }
   .mp-provlbl span { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; font-size: 10.5px; font-weight: 700; color: #a52a17; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff; pointer-events: none; }
   .mp-provlbl.sea span { font-style: italic; color: #1b4f8f; font-weight: 600; }
+  #mpBox.sat .mp-provlbl span { color: #fff; text-shadow: 0 0 3px #000, 0 0 3px #000, 0 1px 2px rgba(0,0,0,.8); }
+  #mpBox.sat .mp-provlbl.sea span { color: #d6ebff; }
   .lg-table td.nt { width: 1%; min-width: 90px; max-width: 160px; font-size: 12px; }
   .lg-table td .lg-btns { gap: 5px; }
 
@@ -2239,7 +2241,7 @@ setInterval(() => loadData(false), 300000);
     const rows = IND_ROWS.filter((r) => IND_STG.some((s) => I[s[0]] && I[s[0]][r[0]] != null && I[s[0]][r[0]] !== ''));
     const head = '<tr><th>Chỉ tiêu</th>' + IND_STG.map((s) => {
       const r = I[s[0]];
-      return '<th class="stg ' + s[0] + (r ? '' : ' off') + '">' + s[1] + (r ? (r.tt === 'Chờ rà' ? '<small class="tag-cho">Chờ rà</small>' : '') : '<small>chưa có</small>') + '</th>';
+      return '<th class="stg ' + s[0] + (r ? '' : ' off') + '">' + s[1] + (r ? (r.tt === 'Chờ rà' ? '<small class="tag-cho">Kiểm tra</small>' : '') : '<small>chưa có</small>') + '</th>';
     }).join('') + pairs.map((p) => '<th class="dif">' + p[1][1] + ' so với ' + p[0][1] + '</th>').join('') + '</tr>';
     const body = rows.map((r) => '<tr><th scope="row">' + r[1] + (r[2] && r[2] !== '%' ? '<small> (' + r[2] + ')</small>' : '') + '</th>' +
       IND_STG.map((s) => '<td>' + indCell(I[s[0]] ? I[s[0]][r[0]] : null, r[2]) + '</td>').join('') +
@@ -2251,14 +2253,14 @@ setInterval(() => loadData(false), 300000);
       if (r.ghichu) parts.push('<div><b>Ghi chú:</b> ' + esc(r.ghichu) + '</div>');
       if (r.luuy) parts.push('<div class="lw"><b>Lưu ý – đối chiếu:</b> ' + esc(r.luuy) + '</div>');
       const lk = su(r.link) ? '<div class="lg-btns" style="margin-top:6px">' + btn(su(r.link), '📐 Bản vẽ / hồ sơ ' + s[1]) + '</div>' : '';
-      return '<details class="ind-note"' + (have.length === 1 ? ' open' : '') + '><summary><span class="stg-dot ' + s[0] + '"></span>' + s[1] + (r.tt === 'Chờ rà' ? ' <small class="tag-cho">Chờ rà</small>' : '') + ' — căn cứ & lưu ý</summary>' + (parts.join('') || '<div class="none">Chưa có ghi chú.</div>') + lk + '</details>';
+      return '<details class="ind-note"' + (have.length === 1 ? ' open' : '') + '><summary><span class="stg-dot ' + s[0] + '"></span>' + s[1] + (r.tt === 'Chờ rà' ? ' <small class="tag-cho">Kiểm tra</small>' : '') + ' — căn cứ & lưu ý</summary>' + (parts.join('') || '<div class="none">Chưa có ghi chú.</div>') + lk + '</details>';
     }).join('');
     const cho = have.some((s) => I[s[0]].tt === 'Chờ rà');
     return '<div class="ind-head"><div><h3>' + esc(o.name) + '</h3><div class="sub"><span class="lg-badge ' + o.status + '">' + ST[o.status].label + '</span>' + (o.prov ? ' <span>📍 ' + esc(o.prov.name) + '</span>' : '') + '</div></div>' +
       '<button class="ind-x" data-ind-close aria-label="Đóng">✕</button></div>' +
       (rows.length ? '<div class="ind-scroll"><table class="ind-tab"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>' : '<div class="lg-empty">Chưa có chỉ tiêu nào được nhập cho dự án này.</div>') +
-      (pairs.length ? '<p class="ind-hint">Chênh lệch = giai đoạn sau trừ giai đoạn trước. Ô “—” là chưa có số liệu (không đoán).</p>' : '<p class="ind-hint">Dự án mới có 1 giai đoạn nên chưa có gì để so sánh.</p>') +
-      (cho ? '<p class="ind-hint cho">“Chờ rà”: số liệu do máy đọc từ văn bản, đang chờ anh/chị kiểm tra theo mục Căn cứ.</p>' : '') + notes;
+      (pairs.length ? '<p class="ind-hint">Chênh lệch = giai đoạn sau trừ giai đoạn trước. Ô “—” là chưa có số liệu.</p>' : '<p class="ind-hint">Dự án mới có 1 giai đoạn nên chưa có gì để so sánh.</p>') +
+      (cho ? '<p class="ind-hint cho">“Kiểm tra”: số liệu nhập từ văn bản Quyết định, cần xác nhận lại theo mục Căn cứ.</p>' : '') + notes;
   }
   function openInd(o) {
     const m = $('indModal'); if (!m) return;
@@ -2440,6 +2442,8 @@ setInterval(() => loadData(false), 300000);
     LM.built = true;
     provLabels();
   }
+  // ranh giới tỉnh: bản đồ thường màu đỏ, ảnh vệ tinh màu trắng cho dễ nhìn trên nền xanh
+  function provStyle() { return LM.base === 'sat' ? { color: '#ffffff', weight: 1.6, opacity: 0.95, dashArray: '6 4' } : { color: '#d0361f', weight: 1.4, opacity: 0.85, dashArray: '6 4' }; }
   // địa giới 34 tỉnh/thành (đường nét đơn giản hóa, đổi từ dữ liệu bản đồ có sẵn sang kinh/vĩ độ)
   function buildProvLayer() {
     const toLL = (x, y) => [MAP.LAT1 - y / MAP.K, MAP.LON0 + x / (MAP.K * MAP.CX)];
@@ -2448,10 +2452,10 @@ setInterval(() => loadData(false), 300000);
         const nums = seg.replace(/Z/g, '').split(/[LZ\s]+/).filter(Boolean).map(Number); if (nums.length < 6) return;
         const r = []; for (let i = 0; i + 1 < nums.length; i += 2) r.push(toLL(nums[i], nums[i + 1])); rings.push([r]);
       });
-      const poly = L.polygon(rings, { color: '#d0361f', weight: 1.4, opacity: 0.85, fill: true, fillOpacity: 0, interactive: true, dashArray: '6 4' }).addTo(LM.gProv);
+      const poly = L.polygon(rings, Object.assign({ fill: true, fillOpacity: 0, interactive: true }, provStyle())).addTo(LM.gProv);
       poly.bindTooltip(p.name, { sticky: true, className: 'mp-tip' });
       poly.on('mouseover', () => poly.setStyle({ weight: 2.4, fillOpacity: 0.06 }));
-      poly.on('mouseout', () => poly.setStyle({ weight: 1.4, fillOpacity: 0 }));
+      poly.on('mouseout', () => poly.setStyle(Object.assign({ fillOpacity: 0 }, provStyle())));
       p._poly = poly;
       let big = null, ba = -1; rings.forEach((rg) => { const bb = L.latLngBounds(rg[0]), a = (bb.getNorth() - bb.getSouth()) * (bb.getEast() - bb.getWest()); if (a > ba) { ba = a; big = bb; } }); p._bb = big; // chỉ tính phần đất liền/đảo lớn nhất
       p._ll = toLL(p.cx, p.cy);
@@ -2481,7 +2485,9 @@ setInterval(() => loadData(false), 300000);
   }
   function setBase(b) {
     LM.base = b;
-    $('mpProv').addEventListener('click', () => setProv(!LM.showProv));
+    if (!LM.provBound) { LM.provBound = true; $('mpProv').addEventListener('click', () => setProv(!LM.showProv)); }
+    const bx = $('mpBox'); if (bx) bx.classList.toggle('sat', b === 'sat');
+    if (LM.built) MAP.prov.forEach((p) => { if (p._poly) p._poly.setStyle(provStyle()); });
     document.querySelectorAll('#mpBase .chip').forEach((c) => c.classList.toggle('active', c.dataset.base === b));
     if (!LM.built) return;
     Object.keys(LM.tiles).forEach((k) => { if (k !== b && LM.map.hasLayer(LM.tiles[k])) LM.map.removeLayer(LM.tiles[k]); });
