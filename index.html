@@ -1263,6 +1263,14 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-ptab { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 6px; }
   .mp-ptab td { padding: 3px 4px; border-bottom: 1px solid var(--line); } .mp-ptab td:not(:first-child) { text-align: right; white-space: nowrap; }
 
+  /* 2 dòng nút dùng chung cho thẻ ở tab Tổng hợp và tab Pháp lý */
+  .stl-btns { display: grid; gap: 5px; width: 100%; flex: 1 1 100%; min-width: 0; }
+  .stl-r1 { display: grid; grid-template-columns: 1fr 1fr 1.3fr 1fr 1.4fr; gap: 4px; }
+  .stl-r2 { display: grid; grid-template-columns: 1fr 1.25fr 1.1fr .85fr; gap: 4px; }
+  .stl-btns i.e { font-style: normal; }
+  .stl-btns .drawing-btn { display: block; text-align: center; padding: 6px 2px; font-size: 11.5px; line-height: 1.2; overflow: hidden; text-overflow: clip; white-space: nowrap; cursor: pointer; font-family: inherit; }
+  @media (max-width: 440px) { .stl-btns .drawing-btn { font-size: 10.5px; padding: 6px 0; } .stl-btns i.e { display: none; } }
+  .stl-btns .drawing-btn.off { cursor: default; color: #aab1be; border: 1px dashed #d3d8e0; background: #f6f7f9; pointer-events: none; }
   .btn-pair { display: inline-flex; gap: 6px; flex-wrap: nowrap; }
   .btn-pair .drawing-btn { white-space: nowrap; }
   @media (max-width: 520px) { .lg-btns { gap: 5px; } .lg-btns .drawing-btn { padding: 6px 9px; font-size: 12px; } }
@@ -1614,7 +1622,7 @@ function cardHtml(d) {
 
     ${tomtatShort ? `<details class="tomtat-toggle"><summary>Xem tóm tắt dự án</summary><div class="tomtat-body">${escapeHtml(tomtatShort)}</div></details>` : ''}
 
-    ${drawingLinksHtml(d)}
+    <div class="drawing-links">${window.stlBtnsMain ? window.stlBtnsMain(d) : ''}</div>
 
     <div class="card-foot">
       <span>Cập nhật: <b>${escapeHtml(d.ngay)||'—'}</b> · PIC <span class="pic">${escapeHtml(d.nguoi||'—')}</span></span>
@@ -1725,6 +1733,7 @@ setInterval(() => loadData(false), 300000);
   let LEGAL = [];    // chỉ các dòng CÓ THÔNG TIN (chủ trương, quy hoạch hoặc vị trí) — dùng cho mọi màn hình
   let SHAPES = new Map(); // ranh giới từ link My Maps ở Dashboard (qua Apps Script: action=mapShapes)
   let shapesState = 'idle', shapesMsg = '';
+  let BYN = new Map();   // tra dự án theo tên (đã chuẩn hóa)
   let IND = new Map();   // chỉ tiêu 3 giai đoạn theo tên dự án: { dx, ct, qd } (mỗi cái là 1 dòng ChiTieu hoặc null)
   let indState = 'idle', indMsg = '', indLoading = false;
   let loaded = false, loading = false;
@@ -1931,6 +1940,7 @@ setInterval(() => loadData(false), 300000);
       o.mapsUrl = (o.pos && o.pos.url) || o.mapsUrl_ || '';
     });
     LEGAL = ALL.filter((o) => o.has);
+    BYN = new Map(ALL.map((o) => [norm(o.name), o]));
     joinWithDashboard.dashCount = dash.length;
   }
   const lastDate = (o) => o.qd.date || o.ctdt.date || null;
@@ -1965,6 +1975,7 @@ setInterval(() => loadData(false), 300000);
   }
 
   /* ---------- tải dữ liệu ---------- */
+  function refreshMain() { try { if (typeof DATA !== 'undefined' && DATA && DATA.length && typeof renderGrid === 'function') renderGrid(); } catch (e) { /* bỏ qua */ } }
   async function loadLegal(manual) {
     if (loading) return;
     loading = true;
@@ -1981,6 +1992,7 @@ setInterval(() => loadData(false), 300000);
       loadInd();
       LS.mapSel = null; // chỉ số trong LEGAL có thể đổi sau khi tải lại
       loaded = true; lastLoad = new Date();
+      refreshMain();
       $('lgNotes').innerHTML = '';
       $('lgLoading').style.display = 'none';
       $('lgBody').style.display = '';
@@ -2013,7 +2025,7 @@ setInterval(() => loadData(false), 300000);
       shapesMsg = /unknown action/i.test(m) ? 'Apps Script chưa có chức năng mapShapes (cần dán code mới và Deploy → New version).'
         : /UrlFetchApp|external_request|permission|authoriz/i.test(m) ? 'Apps Script chưa được cấp quyền kết nối ngoài: chạy hàm authorizeExternal một lần rồi Deploy lại. (' + m + ')' : m;
     }
-    if (loaded) { const n = LEGAL.length; joinWithDashboard(); if (LEGAL.length !== n) LS.mapSel = null; renderAll(); }
+    if (loaded) { const n = LEGAL.length; joinWithDashboard(); if (LEGAL.length !== n) LS.mapSel = null; renderAll(); refreshMain(); }
   }
 
   async function loadInd() {
@@ -2041,7 +2053,7 @@ setInterval(() => loadData(false), 300000);
       indMsg = /unknown action/i.test(t) ? 'Apps Script chưa có chức năng chỉ tiêu (cần dán Code_v3 và Deploy → New version).' : t;
     }
     indLoading = false;
-    if (loaded) { joinWithDashboard(); renderAll(); }
+    if (loaded) { joinWithDashboard(); renderAll(); refreshMain(); }
   }
 
   /* ---------- quét Drive (điền link văn bản mới) ---------- */
@@ -2103,6 +2115,36 @@ setInterval(() => loadData(false), 300000);
   }
   function btn(href, label) { return href ? '<a class="drawing-btn" href="' + esc(href) + '" target="_blank" rel="noopener">' + label + '</a>' : ''; }
   const indBtn = (o, i) => (o.ind && (o.ind.dx || o.ind.ct || o.ind.qd)) ? '<button class="drawing-btn" data-act="ind" data-i="' + i + '">📊 Chỉ tiêu</button>' : '';
+  const urlOne = (v) => { const m = String(v == null ? '' : v).match(/https?:\/\/[^\s<>"']+/i); return m ? m[0] : ''; };
+  // 2 dòng nút chung: BVĐX · CTĐT · BV CTĐT · QĐPD · BV QĐPD / GG Maps · Total Maps · So sánh
+  function stlBtnsFor(o, d) {
+    d = d || {};
+    const name = o ? o.name : (d.ten || '');
+    const U = {
+      dx: urlOne(d.banveDeXuat),
+      ct: o ? su(o.ctdt.pdf) : su(d.banveCTDT),
+      bct: o && o.ind && o.ind.ct ? su(o.ind.ct.link) : '',
+      qd: o ? su(o.qd.pdf) : '',
+      bqd: o ? su(o.banve) : su(d.banveQH500),
+      gg: (o && o.mapsUrl) || urlOne(d.maps),
+      vd: urlOne(d.video)
+    };
+    const A = (u, t, tip) => u
+      ? '<a class="drawing-btn" href="' + esc(u) + '" target="_blank" rel="noopener" title="' + tip + '">' + t + '</a>'
+      : '<span class="drawing-btn off" aria-disabled="true" title="' + tip + ' — chưa có">' + t + '</span>';
+    const B = (on, t, key, tip) => on
+      ? '<button type="button" class="drawing-btn" data-stl="' + key + '" data-n="' + esc(name) + '" title="' + tip + '">' + t + '</button>'
+      : '<span class="drawing-btn off" aria-disabled="true" title="' + tip + ' — chưa có">' + t + '</span>';
+    const canMap = !!(o && (o.shapes || (o.pos && o.pos.ok)));
+    const canInd = !!(o && o.ind && (o.ind.dx || o.ind.ct || o.ind.qd));
+    return '<div class="stl-btns"><div class="stl-r1">' +
+      A(U.dx, 'BVĐX', 'Bản vẽ đề xuất') + A(U.ct, 'CTĐT', 'Văn bản chủ trương đầu tư (CTĐT)') + A(U.bct, 'BV CTĐT', 'Bản vẽ chủ trương (CTĐT)') +
+      A(U.qd, 'QĐPD', 'Quyết định phê duyệt đồ án (QĐPD)') + A(U.bqd, 'BV QĐPD', 'Bản vẽ đã duyệt (QĐPD)') +
+      '</div><div class="stl-r2">' +
+      A(U.gg, '<i class="e">📍 </i>GG Maps', 'Ranh giới dự án trên Google My Maps') + B(canMap, '<i class="e">🗺 </i>Total Maps', 'map', 'Xem trên bản đồ tổng thể các dự án') + B(canInd, '<i class="e">📊 </i>So sánh', 'ind', 'So sánh chỉ tiêu Đề xuất – CTĐT – QĐPD') + A(U.vd, '<i class="e">🎥 </i>Video', 'Video hiện trạng') +
+      '</div></div>';
+  }
+  window.stlBtnsMain = function (d) { return stlBtnsFor(BYN.get(norm(d.ten)) || null, d); };
   function progHtml(o) {
     if (!o.tiendo && o.pct == null) return '';
     return (o.tiendo ? '<div class="v" style="font-size:12.5px">' + esc(o.tiendo) + '</div>' : '') +
@@ -2117,12 +2159,7 @@ setInterval(() => loadData(false), 300000);
     return x.date ? fmt(x.date) + so : '<span class="none">chưa nhập ngày</span>' + so;
   }
   const docBtns = (o) => { const h = btn(o.ctdt.pdf, '📄 CTĐT') + btn(o.qd.pdf, '📄 QĐPD') + (o.qd.has ? btn(o.banve, '📐 Bản vẽ') : ''); return h ? '<span class="btn-pair">' + h + '</span>' : ''; };
-  function linkBtns(o, withAct, i) {
-    return docBtns(o) +
-      btn(o.mapsUrl, '📍 GG Maps') +
-      (withAct ? indBtn(o, i) + ((o.ctdt.date || o.qd.date) ? '<button class="drawing-btn" data-act="tl" data-i="' + i + '">🕒 Timeline</button>' : '') +
-        ((o.shapes || (o.pos && o.pos.ok)) ? '<button class="drawing-btn" data-act="map" data-i="' + i + '">🗺 Xem trên bản đồ</button>' : '') : '');
-  }
+  function linkBtns(o) { return stlBtnsFor(o, o.dash); }
   // thẻ: cùng khung với thẻ ở tab "Tổng hợp dự án"
   function cardHtml(o, i) {
     const last = lastDate(o), col = ST[o.status].color;
@@ -2166,9 +2203,7 @@ setInterval(() => loadData(false), 300000);
       '<td><span class="lg-badge ' + o.status + '">' + ST[o.status].label + '</span></td>' +
       '<td>' + stepCell(o.ctdt) + '</td>' +
       '<td>' + stepCell(o.qd) + '</td>' +
-      '<td><div class="lg-btns">' + (docBtns(o) + btn(o.mapsUrl, '📍 GG Maps') + indBtn(o, i) +
-        ((o.ctdt.date || o.qd.date) ? '<button class="drawing-btn" data-act="tl" data-i="' + i + '">🕒 Timeline</button>' : '') +
-        ((o.shapes || (o.pos && o.pos.ok)) ? '<button class="drawing-btn" data-act="map" data-i="' + i + '">🗺 Bản đồ</button>' : '')) + '</div></td>' +
+      '<td style="min-width:300px">' + stlBtnsFor(o, o.dash) + '</td>' +
       '<td class="nt">' + (o.note ? esc(o.note) : '<span class="none">—</span>') + '</td></tr>';
   }
   function sortedIdx(idx) {
@@ -2621,9 +2656,8 @@ setInterval(() => loadData(false), 300000);
       (o.ctdt.has ? 'CTĐT: ' + (o.ctdt.date ? fmt(o.ctdt.date) : 'chưa nhập ngày') + so(o.ctdt.so) + '<br>' : '') + (o.qd.has ? 'QĐ phê duyệt: ' + (o.qd.date ? fmt(o.qd.date) : 'chưa nhập ngày') + so(o.qd.so) + '<br>' : '') +
       (o.tiendo ? 'Tiến độ: ' + esc(o.tiendo) + (o.pct != null ? ' (' + o.pct + '%)' : '') : (o.pct != null ? 'Tiến độ: ' + o.pct + '%' : '')) + '</div>' +
       (full && o.dash && o.dash.tomtat ? '<div class="mp-sum"><div class="k">Tóm tắt dự án</div>' + sumHtml(o) + '</div>' : '') +
-      '<div class="lg-btns">' + docBtns(o) + (full ? dashBtns(o) : '') + btn(o.mapsUrl, '📍 GG Maps') + indBtn(o, i) +
-      ((o.ctdt.date || o.qd.date) ? '<button class="drawing-btn" data-act="tl" data-i="' + i + '">🕒 Timeline</button>' : '') +
-      (full ? '' : '<button class="drawing-btn" data-act="focus" data-i="' + i + '">🎯 Phóng tới đây</button>') + '</div></div>';
+      stlBtnsFor(o, o.dash) +
+      (full ? '' : '<div class="lg-btns" style="margin-top:6px"><button class="drawing-btn" data-act="focus" data-i="' + i + '">🎯 Phóng tới đây</button></div>') + '</div>';
   }
   function renderSide() {
     const side = $('mpSide');
@@ -2683,6 +2717,16 @@ setInterval(() => loadData(false), 300000);
     };
     $('lgThead').addEventListener('click', (e) => sortBy(e.target.closest('th.sortable')));
     $('lgThead').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { const th = e.target.closest('th.sortable'); if (th) { e.preventDefault(); sortBy(th); } } });
+    document.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-stl]'); if (!b) return;
+      const o = BYN.get(norm(b.dataset.n)); if (!o) return;
+      if (b.dataset.stl === 'ind') { openInd(o); return; }
+      if (b.dataset.stl === 'map' && (o.shapes || (o.pos && o.pos.ok))) {
+        LS.on[o.status] = true; MF.prov = ''; MF.type = ''; MF.nhom = '';
+        if (LS.main !== 'legal') setMain('legal');
+        setSub('map'); selectProject(LEGAL.indexOf(o)); window.scrollTo({ top: 0 });
+      }
+    });
     $('viewLegal').addEventListener('click', (e) => {
       const st = e.target.closest('[data-st]');
       if (st) { LS.on[st.dataset.st] = !LS.on[st.dataset.st]; renderAll(); return; }
@@ -2737,7 +2781,10 @@ setInterval(() => loadData(false), 300000);
       setSub(LS.sub, false); setMain('legal', false);
     }
   }
-  window.legalAfterMain = function () { if (loaded) { joinWithDashboard(); renderAll(); } };
+  window.legalAfterMain = function () {
+    if (loaded) { joinWithDashboard(); renderAll(); refreshMain(); if (!loading && lastLoad && Date.now() - lastLoad.getTime() > 240000) loadLegal(false); }
+    else if (!loading) loadLegal(false); // tải nền để các thẻ ở tab Tổng hợp có đủ link
+  };
   window.__legal = { IND: () => IND, indHtml: indHtml, LS: LS, get LEGAL() { return LEGAL; }, get ALL() { return ALL; }, resolveProv: resolveProv, ST: ST, parsePos: parsePos, provAt: provAt, LM: LM, MF: MF };
   wire();
 })();
