@@ -2417,8 +2417,9 @@ setInterval(() => loadData(false), 300000);
     return parseFloat(t.replace(',', '.'));
   }
   function areaFromText(txt, needKw) {
-    const re = needKw ? /di[eệ]n t[ií]ch[^0-9]{0,40}([\d][\d.,]*)\s*(ha|m2|m²|km2|km²)?/i : /([\d][\d.,]*)\s*(ha)\b/i;
-    const m = String(txt || '').match(re); if (!m) return 0;
+    const re = needKw ? /di[eệ]n t[ií]ch(?!\s*(sàn|s\u00e0n|hầm|h\u1ea7m))[^0-9]{0,40}([\d][\d.,]*)\s*(ha|m2|m²|km2|km²)?/i : /([\d][\d.,]*)\s*(ha)\b/i;
+    const m0 = String(txt || '').match(re); if (!m0) return 0;
+    const m = needKw ? [m0[0], m0[2], m0[3]] : m0;
     let v = parseNum(m[1]); if (!isFinite(v)) return 0;
     const u = (m[2] || 'ha').toLowerCase();
     if (u === 'm2' || u === 'm²') v /= 1e4; else if (u === 'km2' || u === 'km²') v *= 100;
@@ -2432,6 +2433,12 @@ setInterval(() => loadData(false), 300000);
         let v = parseNum(m[1]); const u = (m[2] || '').toLowerCase();
         if (isFinite(v)) { if (u === 'm2' || u === 'm²' || (!u && v >= 1000)) v /= 1e4; else if (u === 'km2' || u === 'km²') v *= 100; if (v > 0) return v; }
       }
+    }
+    // ưu tiên dòng "Quy mô: … m2/ha" trong Tóm tắt dự án (diện tích đất); tránh nhầm với "Diện tích sàn hầm…"
+    const qm = String(d.tomtat || '').match(/quy m[oô][^0-9\n]{0,6}([\d][\d.,]*)\s*(ha|m2|m²|km2|km²)/i);
+    if (qm) {
+      let v = parseNum(qm[1]); const u = qm[2].toLowerCase();
+      if (isFinite(v)) { if (u === 'm2' || u === 'm²') v /= 1e4; else if (u === 'km2' || u === 'km²') v *= 100; if (v > 0) return v; }
     }
     return areaFromText(d.tomtat, true) || areaFromText(d.ten, false);
   }
