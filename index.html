@@ -1341,6 +1341,31 @@ svg.leaflet-image-layer.leaflet-interactive path {
   @media (max-width: 440px) { .stl-btns .drawing-btn { font-size: 10px; padding: 5px 0; } }
   @media (max-width: 520px) { .lg-btns .drawing-btn { font-size: 11px; padding: 5px 8px; } }
   .badge, .lg-badge, .recency { border-radius: 4px; font-size: 10.5px; padding: 3px 7px; }
+
+  /* ===== Căn lề tiêu đề, bố cục bản đồ 3/4 + 1/4 (19/10) ===== */
+  header.top { padding-left: max(16px, calc((100% - var(--page-w)) / 2 + 16px)); padding-right: max(16px, calc((100% - var(--page-w)) / 2 + 16px)); }
+
+  /* Cụm nút bản đồ: 1 khung giống ô chọn bên trái */
+  .mp-tools { display: flex; align-items: stretch; gap: 3px; padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); min-width: 0; }
+  #mpBase { display: contents; }
+  .mp-filt { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; min-width: 0; }
+  .mp-tools .chip { flex: 1 1 auto; min-width: 0; border: 0; border-radius: 6px; padding: 5px 6px; font-size: 12px; line-height: 16px; text-align: center; overflow: hidden; text-overflow: ellipsis; background: transparent; }
+  .mp-tools i.e { font-style: normal; }
+  @media (max-width: 1499px) { .mp-tools i.e { display: none; } }
+  .mp-tools .chip:hover { background: #eef3fa; }
+  .mp-tools .chip.active { background: var(--navy); color: #fff; }
+
+  @media (min-width: 900px) {
+    .mp-toolbar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .mp-toolbar > .sp { display: none; }
+    .mp-filt { grid-column: span 3; }
+    .mp-tools { grid-column: 4; }
+    /* bản đồ 3 cột, danh sách 1 cột — thẳng hàng với 4 ô thống kê */
+    .mp-layout { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; align-items: stretch; }
+    .mp-box { grid-column: span 3; }
+    .mp-side { height: calc(68vh + 2px); min-height: 382px; overflow: auto; display: flex; flex-direction: column; }
+    .mp-side .mp-list { flex: 1 1 auto; max-height: none; min-height: 150px; }
+  }
 </style>
 </head>
 <body>
@@ -1459,14 +1484,18 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
       <section id="lgMap" style="display:none">
         <div class="mp-toolbar">
+          <div class="mp-filt">
           <select id="mpFProv" aria-label="Lọc theo tỉnh/thành"></select>
           <select id="mpFType" aria-label="Lọc theo thể loại"></select>
           <select id="mpFNhom" aria-label="Lọc theo nhóm"></select>
           <button class="chip" id="mpFClear" style="display:none">✕ Bỏ lọc</button>
+          </div>
           <span class="sp"></span>
-          <button class="chip active" id="mpProv" title="Bật/tắt đường địa giới 34 tỉnh/thành">▦ Địa giới 34 tỉnh</button>
-          <button class="chip" id="mpFit">⤢ Xem tất cả</button>
-          <span id="mpBase" style="display:inline-flex;gap:4px"><button class="chip active" data-base="osm">🗺 Bản đồ</button><button class="chip" data-base="sat">🛰 Vệ tinh</button></span>
+          <div class="mp-tools">
+            <button class="chip active" id="mpProv" title="Bật/tắt đường địa giới 34 tỉnh/thành"><i class="e">▦ </i>Địa giới</button>
+            <button class="chip" id="mpFit" title="Phóng vừa tất cả dự án"><i class="e">⤢ </i>Xem tất cả</button>
+            <span id="mpBase"><button class="chip active" data-base="osm"><i class="e">🗺 </i>Bản đồ</button><button class="chip" data-base="sat"><i class="e">🛰 </i>Vệ tinh</button></span>
+          </div>
         </div>
         <div class="mp-stats" id="mpStats"></div>
         <p class="mp-statnote" id="mpStatNote"></p>
