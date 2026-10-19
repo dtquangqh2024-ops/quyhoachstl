@@ -1366,6 +1366,13 @@ svg.leaflet-image-layer.leaflet-interactive path {
     .mp-side { height: calc(68vh + 2px); min-height: 382px; overflow: auto; display: flex; flex-direction: column; }
     .mp-side .mp-list { flex: 1 1 auto; max-height: none; min-height: 150px; }
   }
+
+  /* ===== Bỏ tổng diện tích, ghi chú; thu gọn 2 dòng vàng (19/10) ===== */
+  .mp-stat em, .mp-statnote { display: none; }
+  .mp-stats { margin-bottom: 10px; }
+  .mp-side > h3 + .hint { display: none; }
+  .mp-side > details.lg-note { padding: 4px 10px; margin: 6px 0 0 !important; font-size: 12.5px; line-height: 1.4; border-radius: 6px; }
+  .mp-side > details.lg-note[open] { padding-bottom: 8px; }
 </style>
 </head>
 <body>
