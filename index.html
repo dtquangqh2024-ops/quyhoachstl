@@ -104,7 +104,7 @@
   .refresh-btn:disabled { opacity: 0.5; cursor: default; }
 
   .controls {
-    max-width: 1100px;
+    max-width: var(--page-w);
     margin: -18px auto 0;
     padding: 0 16px;
     position: relative;
@@ -132,7 +132,7 @@
   .search-box svg { flex-shrink: 0; color: var(--muted); }
 
   .filters {
-    max-width: 1100px;
+    max-width: var(--page-w);
     margin: 14px auto 0;
     padding: 0 16px;
     display: flex;
@@ -161,7 +161,7 @@
   }
 
   .count-bar {
-    max-width: 1100px;
+    max-width: var(--page-w);
     margin: 14px auto 0;
     padding: 0 20px;
     font-size: 12.5px;
@@ -170,7 +170,7 @@
   }
 
   .grid {
-    max-width: 1100px;
+    max-width: var(--page-w);
     margin: 10px auto 60px;
     padding: 0 16px;
     display: grid;
@@ -304,7 +304,7 @@
   }
 
   .empty-state, .error-state, .loading-state {
-    max-width: 1100px;
+    max-width: var(--page-w);
     margin: 40px auto;
     text-align: center;
     color: var(--muted);
@@ -1021,7 +1021,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     position: sticky; top: 0; z-index: 20;
   }
   nav.main-tabs .inner {
-    max-width: 1100px; margin: 0 auto; padding: 0 16px;
+    max-width: var(--page-w); margin: 0 auto; padding: 0 16px;
     display: flex; gap: 4px; overflow-x: auto;
   }
   .main-tab {
@@ -1039,7 +1039,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     --st-ctdt: #2563c9; --st-ctdt-bg: #e8effc;
     --st-qd: #12805c;   --st-qd-bg: #e5f6ef;
   }
-  .lg-wrap { max-width: 1100px; margin: 0 auto; padding: 14px 16px 60px; }
+  .lg-wrap { max-width: var(--page-w); margin: 0 auto; padding: 14px 16px 60px; }
   .lg-subtabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
   .lg-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
   .lg-stat {
@@ -1329,6 +1329,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
 @media (max-width: 600px) { .ind-tab { min-width: 480px; } .ind-tab tbody th { min-width: 110px; } }
 
 
+  /* ===== Độ rộng nội dung: chỉnh 1 chỗ này (trước là 1100px) ===== */
+  :root { --page-w: 1680px; }
+  @media (min-width: 1500px) { .grid, .lg-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
   /* ===== Khung vuông, bo nhẹ góc, chữ nhỏ hơn (19/10) ===== */
   .chip, details.tl-pick > summary { border-radius: 4px; font-size: 11.5px; padding: 5px 10px; }
   .drawing-btn { border-radius: 4px; font-size: 10.5px; padding: 4px 8px; }
@@ -1379,7 +1383,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
 <div class="count-bar" id="countBar"></div>
 
-<div class="view-toggle" style="max-width:1100px;margin:0 auto 10px;padding:0 16px;display:flex;gap:6px;">
+<div class="view-toggle" style="max-width: var(--page-w);margin:0 auto 10px;padding:0 16px;display:flex;gap:6px;">
   <button class="chip active" id="viewCardBtn">▦ Thẻ</button>
   <button class="chip" id="viewTableBtn">☰ Bảng</button>
 </div>
@@ -1387,7 +1391,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 <div class="loading-state" id="loadingState">Đang tải dữ liệu từ Google Sheet...</div>
 <div class="error-state" id="errorState" style="display:none"></div>
 <div class="grid" id="grid"></div>
-<div class="table-view" id="tableWrap" style="display:none;max-width:1100px;margin:0 auto 40px;padding:0 16px;">
+<div class="table-view" id="tableWrap" style="display:none;max-width: var(--page-w);margin:0 auto 40px;padding:0 16px;">
   <table style="width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;">
     <thead>
       <tr style="background:#eef1f5;">
