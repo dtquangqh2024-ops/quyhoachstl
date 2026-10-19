@@ -1373,6 +1373,16 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-side > h3 + .hint { display: none; }
   .mp-side > details.lg-note { padding: 4px 10px; margin: 6px 0 0 !important; font-size: 12.5px; line-height: 1.4; border-radius: 6px; }
   .mp-side > details.lg-note[open] { padding-bottom: 8px; }
+
+  /* ===== Lớp QH sử dụng đất Hà Nội ===== */
+  .mp-sdd { background: rgba(255,255,255,.95); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; width: 210px; box-shadow: 0 1px 4px rgba(0,0,0,.25); font-size: 12px; color: #1f2a3d; }
+  .mp-sdd-t { display: flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; }
+  .mp-sdd-r { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+  .mp-sdd-r span { color: var(--muted); font-size: 11.5px; }
+  .mp-sdd-r input { flex: 1; min-width: 0; accent-color: var(--navy); }
+  .mp-sdd-r b { width: 32px; text-align: right; font-size: 11.5px; }
+  .mp-sdd-n { margin-top: 5px; font-size: 10.5px; color: var(--muted); line-height: 1.35; }
+  .mp-sdd.off .mp-sdd-r, .mp-sdd.off .mp-sdd-n { display: none; }
 </style>
 </head>
 <body>
@@ -1501,13 +1511,13 @@ svg.leaflet-image-layer.leaflet-interactive path {
           <div class="mp-tools">
             <button class="chip active" id="mpProv" title="Bật/tắt đường địa giới 34 tỉnh/thành"><i class="e">▦ </i>Địa giới</button>
             <button class="chip" id="mpFit" title="Phóng vừa tất cả dự án"><i class="e">⤢ </i>Xem tất cả</button>
-            <span id="mpBase"><button class="chip active" data-base="osm"><i class="e">🗺 </i>Bản đồ</button><button class="chip" data-base="sat"><i class="e">🛰 </i>Vệ tinh</button></span>
+            <span id="mpBase"><button class="chip" data-base="osm"><i class="e">🗺 </i>Bản đồ</button><button class="chip active" data-base="sat"><i class="e">🛰 </i>Vệ tinh</button></span>
           </div>
         </div>
         <div class="mp-stats" id="mpStats"></div>
         <p class="mp-statnote" id="mpStatNote"></p>
         <div class="mp-layout">
-          <div class="mp-box" id="mpBox"><div id="mpLeaf"></div></div>
+          <div class="mp-box sat" id="mpBox"><div id="mpLeaf"></div></div>
           <aside class="mp-side" id="mpSide"></aside>
         </div>
       </section>
@@ -2456,7 +2466,7 @@ setInterval(() => loadData(false), 300000);
 
   /* ---------- Bản đồ (Leaflet): ranh giới từng dự án ---------- */
   const MF = { prov: '', type: '', nhom: '' };
-  const LM = { showProv: true, gProv: null, gProvLbl: null, map: null, built: false, tiles: {}, base: 'osm', gShapes: null, gMarks: null, items: [], sel: -1, needFit: true };
+  const LM = { showProv: true, gProv: null, gProvLbl: null, map: null, built: false, tiles: {}, base: 'sat', gShapes: null, gMarks: null, items: [], sel: -1, needFit: true };
 
   // Diện tích lấy từ Dashboard: cột có tên chứa "diện tích"; nếu không có thì tìm "… ha/m2" trong Tóm tắt dự án, rồi trong tên dự án
   function parseNum(t) {
@@ -2522,7 +2532,8 @@ setInterval(() => loadData(false), 300000);
     LM.map = map;
     LM.tiles.osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
     LM.tiles.sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Ảnh: Esri, Maxar, Earthstar Geographics' });
-    LM.tiles.osm.addTo(map);
+    LM.tiles[LM.base].addTo(map);
+    buildSdd(map);
     LM.gProv = L.layerGroup(); LM.gProvLbl = L.layerGroup();
     buildProvLayer();
     if (LM.showProv) { LM.gProv.addTo(map); }
@@ -2532,6 +2543,34 @@ setInterval(() => loadData(false), 300000);
     map.on('zoomend', layoutMarks);
     LM.built = true;
     provLabels();
+  }
+  /* ---- Lớp Quy hoạch sử dụng đất Hà Nội (ảnh cắt ô từ bản vẽ QH06, thư mục qhsdd/ cạnh index.html) ---- */
+  const SDD_URL = 'qhsdd/{z}/{x}/{y}.webp';
+  const SDD_BOUNDS = [[20.54, 105.26], [21.40, 106.05]];
+  const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+  function buildSdd(map) {
+    map.createPane('sddPane'); map.getPane('sddPane').style.zIndex = 250; map.getPane('sddPane').style.pointerEvents = 'none';
+    let on = lsGet('sddOn', '1') === '1', op = +lsGet('sddOp', '55') || 55;
+    LM.sdd = L.tileLayer(SDD_URL, {
+      pane: 'sddPane', minZoom: 8, minNativeZoom: 10, maxNativeZoom: 16, maxZoom: 19, bounds: SDD_BOUNDS, opacity: op / 100,
+      errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+      attribution: 'QH sử dụng đất Hà Nội – bản vẽ QH06 (tham khảo)'
+    });
+    if (on) LM.sdd.addTo(map);
+    const C = L.control({ position: 'topright' });
+    C.onAdd = function () {
+      const d = L.DomUtil.create('div', 'mp-sdd');
+      d.innerHTML = '<label class="mp-sdd-t"><input type="checkbox" id="sddOn"' + (on ? ' checked' : '') + '> QH sử dụng đất HN</label>' +
+        '<div class="mp-sdd-r"><span>Độ đậm</span><input type="range" id="sddOp" min="10" max="95" step="5" value="' + op + '"><b id="sddOpV">' + op + '%</b></div>' +
+        '<div class="mp-sdd-n" id="sddNote">Phóng vào Hà Nội để xem. Chỉ để tham khảo bối cảnh, không dùng xác định ranh/chỉ tiêu.</div>';
+      L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
+      d.querySelector('#sddOn').addEventListener('change', (e) => { on = e.target.checked; lsSet('sddOn', on ? '1' : '0'); if (on) LM.sdd.addTo(map); else map.removeLayer(LM.sdd); d.classList.toggle('off', !on); });
+      d.querySelector('#sddOp').addEventListener('input', (e) => { op = +e.target.value; LM.sdd.setOpacity(op / 100); d.querySelector('#sddOpV').textContent = op + '%'; lsSet('sddOp', String(op)); });
+      d.classList.toggle('off', !on);
+      return d;
+    };
+    C.addTo(map);
   }
   // ranh giới tỉnh: bản đồ thường màu đỏ, ảnh vệ tinh màu trắng cho dễ nhìn trên nền xanh
   function provStyle() { return LM.base === 'sat' ? { color: '#ffffff', weight: 1.6, opacity: 0.95, dashArray: '6 4' } : { color: '#d0361f', weight: 1.4, opacity: 0.85, dashArray: '6 4' }; }
