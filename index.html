@@ -2383,7 +2383,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
   async function loadShapes() {
     shapesState = 'loading';
     try {
-      const res = await fetch(WEB_APP_URL + '?action=mapShapes', { cache: 'no-store' });
+      const res = await fetch(WEB_APP_URL + '?action=mapShapes' + AUTH.qs(), { cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const json = await res.json();
       if (json && json.error) throw new Error(json.error);
