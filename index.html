@@ -1415,6 +1415,47 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .lockbox .lk-msg { font-size: 11.5px; color: #b3261e; margin-top: 4px; min-height: 0; }
   #viewBar { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 2000; background: #13233f; color: #fff; border-radius: 6px; padding: 7px 12px; font-size: 12.5px; box-shadow: 0 4px 16px rgba(0,0,0,.3); display: flex; flex-direction: column; gap: 4px; max-width: calc(100vw - 32px); }
   #viewBar button { margin-left: 8px; font: inherit; font-size: 11.5px; border: 1px solid rgba(255,255,255,.4); background: transparent; color: #fff; border-radius: 4px; padding: 1px 7px; cursor: pointer; }
+
+  /* ===== Chế độ trang: đăng nhập team / xem link chia sẻ ===== */
+  #gateView, #shareView { display: none; }
+  body.gate #gateView, body.share-mode #shareView { display: block; }
+  body.gate nav.main-tabs, body.gate #viewProjects, body.gate #viewLegal,
+  body.share-mode nav.main-tabs, body.share-mode #viewProjects, body.share-mode #viewLegal, body.share-mode header.top .meta { display: none !important; }
+  body.gate #authBox, body.gate header.top .meta { display: none !important; }
+  .gate-card { max-width: 420px; margin: 60px auto; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 28px 24px; text-align: center; }
+  .gate-ico { font-size: 34px; } .gate-card h2 { margin: 6px 0 8px; font-size: 19px; } .gate-card p { font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+  .gate-f { display: flex; gap: 8px; justify-content: center; margin-top: 14px; }
+  .gate-f input { font: inherit; font-size: 18px; letter-spacing: .3em; width: 150px; text-align: center; padding: 8px; border: 1px solid var(--line); border-radius: 6px; }
+  .gate-f button { font: inherit; font-weight: 700; padding: 8px 18px; border: 0; border-radius: 6px; background: var(--navy); color: #fff; cursor: pointer; }
+  .gate-msg { min-height: 18px; margin-top: 8px; font-size: 12.5px; color: #b3261e; } .gate-n { font-size: 12px !important; margin-top: 16px; }
+  .sh-wrap { max-width: 860px; margin: 18px auto 60px; padding: 0 16px; display: grid; gap: 12px; }
+  .sh-card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; }
+  .sh-card h3 { margin: 0 0 10px; font-size: 15px; } .sh-head h2 { margin: 2px 0 8px; font-size: 22px; }
+  .sh-k { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  .sh-chips { display: flex; gap: 5px; flex-wrap: wrap; } .sh-chips span { font-size: 11.5px; font-weight: 600; background: #eef2f8; color: var(--navy-2); border-radius: 4px; padding: 3px 8px; }
+  .sh-exp { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .sh-err { text-align: center; font-size: 15px; font-weight: 600; } .sh-err span { font-size: 12.5px; font-weight: 400; color: var(--muted); }
+  .sh-kv { width: 100%; border-collapse: collapse; font-size: 13px; } .sh-kv th { text-align: left; width: 34%; color: var(--muted); font-weight: 600; padding: 6px 10px 6px 0; vertical-align: top; } .sh-kv td { padding: 6px 0; border-bottom: 1px solid var(--line); line-height: 1.5; }
+  .sh-tw { overflow-x: auto; } .sh-tb { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 420px; }
+  .sh-tb th { background: #eef1f5; text-align: right; padding: 7px 10px; font-size: 12px; } .sh-tb th:first-child, .sh-tb td:first-child { text-align: left; }
+  .sh-tb td { padding: 6px 10px; border-top: 1px solid var(--line); text-align: right; } .sh-tb td span { color: var(--muted); font-size: 11.5px; }
+  .sh-links { display: flex; gap: 6px; flex-wrap: wrap; } .sh-links .drawing-btn { font-size: 12px; padding: 6px 10px; }
+  .sh-log { list-style: none; margin: 0; padding: 0; } .sh-log li { padding: 8px 0; border-top: 1px solid var(--line); font-size: 13px; line-height: 1.5; }
+  .sh-log em { font-style: normal; font-size: 11.5px; background: #eef2f8; border-radius: 4px; padding: 1px 6px; margin-left: 6px; } .sh-log span { font-size: 11.5px; color: var(--muted); }
+  .sh-map { height: 320px; border-radius: 6px; margin-top: 12px; border: 1px solid var(--line); }
+  .sh-none { color: var(--muted); font-size: 13px; margin: 0; } .sh-foot { text-align: center; font-size: 11.5px; color: var(--muted); }
+  .share-btn { font: inherit; font-size: 11px; font-weight: 600; margin-left: 6px; padding: 2px 7px; border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--navy-2); cursor: pointer; }
+  .share-btn:hover { border-color: var(--navy-2); }
+  #shareDlg { position: fixed; inset: 0; z-index: 3000; background: rgba(10,20,40,.45); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .sd-box { background: #fff; border-radius: 8px; width: min(440px, 100%); padding: 16px 18px; box-shadow: 0 10px 40px rgba(0,0,0,.3); font-size: 13px; }
+  .sd-h { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; margin-bottom: 10px; } .sd-x { border: 0; background: none; font-size: 16px; cursor: pointer; color: var(--muted); }
+  .sd-l { font-size: 11.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin: 10px 0 5px; }
+  .sd-sc, .sd-d { display: flex; flex-wrap: wrap; gap: 6px 14px; } .sd-sc label, .sd-d label { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
+  .sd-note { width: 100%; font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; }
+  .sd-a { margin-top: 12px; } .sd-go { font: inherit; font-weight: 700; padding: 7px 16px; border: 0; border-radius: 4px; background: var(--navy); color: #fff; cursor: pointer; }
+  .sd-out { margin-top: 10px; display: flex; gap: 6px; } .sd-url { flex: 1; min-width: 0; font: inherit; font-size: 12px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: #f6f8fb; }
+  .sd-copy { font: inherit; font-weight: 600; padding: 6px 12px; border: 1px solid var(--navy); border-radius: 4px; background: #fff; color: var(--navy); cursor: pointer; }
+  .sd-n { margin-top: 12px; font-size: 11.5px; color: var(--muted); line-height: 1.45; }
 </style>
 </head>
 <body>
@@ -1438,6 +1479,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <button class="main-tab" data-main="legal" role="tab" aria-selected="false">⚖️ Pháp lý &amp; tiến độ</button>
   </div>
 </nav>
+<div id="gateView"></div>
+<div id="shareView"></div>
 <div id="viewProjects">
 <div class="controls">
   <div class="search-box">
@@ -1590,12 +1633,12 @@ const AUTH = (function () {
     logout() { st.team = null; save(); }
   };
 })();
-function reloadAll() { const b = document.getElementById('refreshBtn'); if (b) b.click(); }
+function reloadAll() { if (SHARE_ID) { loadShare(); return; } setPageMode(); if (!AUTH.team()) { renderGate(); return; } const b = document.getElementById('refreshBtn'); if (b) b.click(); }
 function fmtLeft(ms) { const s = Math.max(0, Math.round(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 function renderAuthBox() {
   const box = document.getElementById('authBox'); if (!box) return;
   const t = AUTH.team();
-  if (t) { box.innerHTML = '<span class="auth-who">👤 ' + escapeHtml(t.ten || '') + '</span><button class="refresh-btn" id="authOut">Đăng xuất</button>'; document.getElementById('authOut').onclick = () => { AUTH.logout(); renderAuthBox(); reloadAll(); }; return; }
+  if (t) { box.innerHTML = '<span class="auth-who">👤 ' + escapeHtml(t.ten || '') + '</span><button class="refresh-btn" id="authOut">Đăng xuất</button>'; document.getElementById('authOut').onclick = () => { AUTH.logout(); renderAuthBox(); setPageMode(); renderGate(); }; return; }
   box.innerHTML = '<button class="refresh-btn" id="authIn" title="Dành cho team: nhập mã Google Authenticator của bạn">Đăng nhập team</button>' +
     '<span class="auth-form" id="authForm" style="display:none"><input id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Mã 6 số"><button class="refresh-btn" id="authGo">Vào</button><span id="authMsg"></span></span>';
   document.getElementById('authIn').onclick = () => { document.getElementById('authForm').style.display = ''; document.getElementById('authIn').style.display = 'none'; document.getElementById('authCode').focus(); };
@@ -1608,16 +1651,133 @@ function renderAuthBox() {
       const j = await r.json();
       if (!j.ok) { msg.textContent = j.error || 'Không đúng'; return; }
       AUTH.setTeam({ tk: j.tk, exp: j.exp, ten: j.ten });
-      renderAuthBox(); reloadAll();
+      renderAuthBox(); setPageMode(); loadData(false);
     } catch (e) { msg.textContent = 'Lỗi mạng'; }
   };
   document.getElementById('authGo').onclick = go;
   document.getElementById('authCode').onkeydown = (e) => { if (e.key === 'Enter') go(); };
 }
+/* ===== CHẾ ĐỘ TRANG: chia sẻ (?s=MÃ) / màn hình đăng nhập team / bình thường ===== */
+const SHARE_ID = (() => { try { return (new URLSearchParams(location.search).get('s') || '').replace(/[^A-Za-z0-9]/g, ''); } catch (e) { return ''; } })();
+const SH_LABEL = { tq: 'Tổng quan', pl: 'Pháp lý', ct: 'Chỉ tiêu', bv: 'Bản vẽ, văn bản', nk: 'Nhật ký' };
+const SH_IND = [['dt', 'Diện tích đất', 'm²'], ['dan', 'Dân số', 'người'], ['ho', 'Số hộ / căn hộ', ''], ['gfa', 'GFA tổng', 'm²'], ['gfao', 'GFA ở', 'm²'],
+  ['hs', 'Hệ số SDĐ', 'lần'], ['md1', 'Mật độ XD (khối đế / chung)', '%'], ['md2', 'Mật độ XD (khối tháp)', '%'],
+  ['tang', 'Tầng cao tối đa', 'tầng'], ['ham', 'Số tầng hầm', ''], ['dtham', 'DT sàn hầm', 'm²'], ['tk', 'Tĩnh không', '']];
+const shNum = (v) => (typeof v === 'number' && isFinite(v)) ? v.toLocaleString('vi-VN', { maximumFractionDigits: 2 }) : escapeHtml(v == null ? '' : String(v));
+const shDate = (ms) => { const d = new Date(ms); return d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }); };
+let shMap = null;
+
+function setPageMode() {
+  document.body.classList.toggle('share-mode', !!SHARE_ID);
+  document.body.classList.toggle('gate', !SHARE_ID && !AUTH.team());
+}
+function renderGate() {
+  const g = document.getElementById('gateView'); if (!g) return;
+  g.innerHTML = '<div class="gate-card"><div class="gate-ico">🔒</div><h2>Trang nội bộ Team Quy hoạch</h2>' +
+    '<p>Nhập mã 6 số đang hiện trong app <b>Google Authenticator</b> của bạn để vào.</p>' +
+    '<div class="gate-f"><input id="gateCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Mã 6 số"><button type="button" id="gateGo">Vào</button></div><div id="gateMsg" class="gate-msg"></div>' +
+    '<p class="gate-n">Người ngoài: chỉ xem được qua link chia sẻ do team gửi.</p></div>';
+  const go = async () => {
+    const code = document.getElementById('gateCode').value.replace(/\D/g, ''), msg = document.getElementById('gateMsg');
+    if (code.length !== 6) { msg.textContent = 'Nhập đủ 6 số.'; return; }
+    msg.textContent = 'Đang kiểm tra…';
+    try {
+      const r = await fetch(WEB_APP_URL + '?action=teamlogin&code=' + code, { cache: 'no-store' });
+      const j = await r.json();
+      if (!j.ok) { msg.textContent = j.error || 'Không đúng.'; return; }
+      AUTH.setTeam({ tk: j.tk, exp: j.exp, ten: j.ten });
+      setPageMode(); renderAuthBox(); loadData(false);
+    } catch (e) { msg.textContent = 'Lỗi mạng: ' + e.message; }
+  };
+  document.getElementById('gateGo').onclick = go;
+  document.getElementById('gateCode').onkeydown = (e) => { if (e.key === 'Enter') go(); };
+}
+
+/* ---------- trang xem link chia sẻ ---------- */
+async function loadShare() {
+  const v = document.getElementById('shareView'); if (!v) return;
+  if (!v.innerHTML) v.innerHTML = '<div class="sh-wrap"><div class="sh-card">Đang tải…</div></div>';
+  let j;
+  try { const r = await fetch(WEB_APP_URL + '?action=share&s=' + SHARE_ID + AUTH.qs(), { cache: 'no-store' }); j = await r.json(); }
+  catch (e) { v.innerHTML = '<div class="sh-wrap"><div class="sh-card sh-err">Không tải được (' + escapeHtml(e.message) + ').</div></div>'; return; }
+  if (!j || !j.ok) { v.innerHTML = '<div class="sh-wrap"><div class="sh-card sh-err">🔒 ' + escapeHtml((j && j.error) || 'Link không hợp lệ') + '.<br><span>Liên hệ người gửi link để được cấp link mới.</span></div></div>'; return; }
+  const head = '<div class="sh-card sh-head"><div class="sh-k">Thông tin dự án được chia sẻ</div><h2>' + escapeHtml(j.project) + '</h2>' +
+    '<div class="sh-chips">' + j.scopeNames.map((s) => '<span>' + escapeHtml(s) + '</span>').join('') + '</div>' +
+    '<div class="sh-exp">' + (j.exp ? 'Link có hiệu lực đến ' + shDate(j.exp) : 'Link không giới hạn thời gian') + '</div></div>';
+  if (j.locked) {
+    v.innerHTML = '<div class="sh-wrap">' + head + '<div class="sh-card">' + lockBoxHtml(j.project, (j.approvers || []).filter((x) => x !== 'Quang').join(', '), SHARE_ID) + '</div></div>';
+    return;
+  }
+  const d = j.data || {}; let html = '<div class="sh-wrap">' + head;
+  const kv = (o) => '<table class="sh-kv">' + Object.keys(o).map((k) => '<tr><th>' + escapeHtml(k) + '</th><td>' + shNum(o[k]).replace(/\n/g, '<br>') + '</td></tr>').join('') + '</table>';
+  if (d.tq) {
+    html += '<div class="sh-card"><h3>Tổng quan</h3>' + (Object.keys(d.tq).length ? kv(d.tq) : '<p class="sh-none">Chưa có thông tin.</p>') +
+      ((d.shapes && d.shapes.length) ? '<div id="shMap" class="sh-map"></div>' : '') +
+      (d.maps ? '<p><a class="drawing-btn" href="' + escapeHtml(d.maps) + '" target="_blank" rel="noopener">📍 Mở trên Google Maps</a></p>' : '') + '</div>';
+  }
+  if (d.pl) html += '<div class="sh-card"><h3>Pháp lý</h3>' + (Object.keys(d.pl).length ? kv(d.pl) : '<p class="sh-none">Chưa có thông tin pháp lý.</p>') + '</div>';
+  if (d.ct) {
+    const by = {}; d.ct.forEach((r) => { by[r.gd] = r; });
+    const stg = ['Đề xuất', 'CTĐT', 'QĐPD'].filter((g) => by[g]);
+    const rows = SH_IND.filter(([k]) => stg.some((g) => by[g][k] != null && by[g][k] !== ''));
+    html += '<div class="sh-card"><h3>Chỉ tiêu</h3>' + (stg.length && rows.length ?
+      '<div class="sh-tw"><table class="sh-tb"><tr><th>Chỉ tiêu</th>' + stg.map((g) => '<th>' + g + '</th>').join('') + '</tr>' +
+      rows.map(([k, t, u]) => '<tr><td>' + t + (u ? ' <span>(' + u + ')</span>' : '') + '</td>' + stg.map((g) => '<td>' + (by[g][k] == null ? '—' : shNum(by[g][k])) + '</td>').join('') + '</tr>').join('') + '</table></div>'
+      : '<p class="sh-none">Chưa có số liệu chỉ tiêu.</p>') + '</div>';
+  }
+  if (d.bv) html += '<div class="sh-card"><h3>Bản vẽ, văn bản</h3>' + (d.bv.length ? '<div class="sh-links">' + d.bv.map((x) => '<a class="drawing-btn" href="' + escapeHtml(x.u) + '" target="_blank" rel="noopener">' + escapeHtml(x.t) + '</a>').join('') + '</div>' : '<p class="sh-none">Chưa có file.</p>') + '</div>';
+  if (d.nk) html += '<div class="sh-card"><h3>Nhật ký</h3>' + (d.nk.length ? '<ul class="sh-log">' + d.nk.map((x) => '<li><b>' + escapeHtml(x.ngay) + '</b>' + (x.tt ? ' <em>' + escapeHtml(x.tt) + '</em>' : '') + '<div>' + escapeHtml(x.nd) + '</div>' + (x.nguoi ? '<span>' + escapeHtml(x.nguoi) + '</span>' : '') + '</li>').join('') + '</ul>' : '<p class="sh-none">Chưa có nhật ký.</p>') + '</div>';
+  v.innerHTML = html + '<p class="sh-foot">Thông tin chỉ dùng cho mục đích trao đổi công việc. Không chia sẻ lại.</p></div>';
+  if (d.shapes && d.shapes.length && typeof L !== 'undefined') {
+    if (shMap) { try { shMap.remove(); } catch (e) {} }
+    shMap = L.map('shMap', { scrollWheelZoom: false });
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Ảnh: Esri, Maxar' }).addTo(shMap);
+    const g = L.featureGroup().addTo(shMap);
+    d.shapes.forEach((s) => (s.f || []).forEach((f) => {
+      const ll = f.c.map((p) => [p[1], p[0]]);
+      if (f.t === 'p') L.polygon(ll, { color: '#ffd400', weight: 2, fillOpacity: 0.15 }).addTo(g);
+      else if (f.t === 'l') L.polyline(ll, { color: '#ffd400', weight: 2 }).addTo(g);
+      else L.circleMarker(ll[0], { radius: 6, color: '#ffd400' }).addTo(g);
+    }));
+    try { shMap.fitBounds(g.getBounds(), { padding: [20, 20], maxZoom: 17 }); } catch (e) { shMap.setView([21.03, 105.85], 11); }
+  }
+}
+
+/* ---------- team: tạo link chia sẻ ---------- */
+function openShareDlg(name) {
+  let dlg = document.getElementById('shareDlg');
+  if (!dlg) { dlg = document.createElement('div'); dlg.id = 'shareDlg'; document.body.appendChild(dlg); }
+  dlg.innerHTML = '<div class="sd-box" role="dialog" aria-label="Chia sẻ dự án"><div class="sd-h"><span>🔗 Chia sẻ: <b>' + escapeHtml(name) + '</b></span><button type="button" class="sd-x" aria-label="Đóng">✕</button></div>' +
+    '<div class="sd-l">Cho xem phần nào</div><div class="sd-sc">' + Object.keys(SH_LABEL).map((k) => '<label><input type="checkbox" value="' + k + '"' + (k === 'tq' ? ' checked' : '') + '> ' + SH_LABEL[k] + '</label>').join('') + '</div>' +
+    '<div class="sd-l">Link hết hạn sau</div><div class="sd-d">' + [[1, '1 ngày'], [7, '7 ngày'], [30, '30 ngày'], [0, 'Không hạn']].map(([n, t]) => '<label><input type="radio" name="sdDays" value="' + n + '"' + (n === 7 ? ' checked' : '') + '> ' + t + '</label>').join('') + '</div>' +
+    '<div class="sd-l">Ghi chú (gửi cho ai, để tra lại)</div><input class="sd-note" maxlength="200" placeholder="VD: gửi anh A bên CĐT">' +
+    '<div class="sd-a"><button type="button" class="sd-go">Tạo link</button></div><div class="sd-out"></div>' +
+    '<div class="sd-n">Người nhận vẫn phải xin mã Authenticator (của anh Quang hoặc người phụ trách dự án) để xem, mỗi lần 15 phút. Thu hồi: tab <b>ChiaSe</b> trong Sheet, ghi "Thu hồi" hoặc xóa dòng.</div></div>';
+  dlg.style.display = '';
+  dlg.querySelector('.sd-x').onclick = () => { dlg.style.display = 'none'; };
+  dlg.onclick = (e) => { if (e.target === dlg) dlg.style.display = 'none'; };
+  dlg.querySelector('.sd-go').onclick = async () => {
+    const out = dlg.querySelector('.sd-out');
+    const scope = [...dlg.querySelectorAll('.sd-sc input:checked')].map((x) => x.value);
+    const days = (dlg.querySelector('.sd-d input:checked') || {}).value || 7;
+    if (!scope.length) { out.textContent = 'Chọn ít nhất 1 phần.'; return; }
+    out.textContent = 'Đang tạo…';
+    try {
+      const r = await fetch(WEB_APP_URL + '?action=createShare&project=' + encodeURIComponent(name) + '&scope=' + scope.join(',') + '&days=' + days + '&note=' + encodeURIComponent(dlg.querySelector('.sd-note').value) + AUTH.qs(), { cache: 'no-store' });
+      const j = await r.json();
+      if (!j.ok) { out.textContent = j.error || 'Không tạo được.'; return; }
+      const url = location.origin + location.pathname + '?s=' + j.id;
+      out.innerHTML = '<input class="sd-url" readonly value="' + escapeHtml(url) + '"><button type="button" class="sd-copy">Copy</button>';
+      out.querySelector('.sd-copy').onclick = async () => { try { await navigator.clipboard.writeText(url); out.querySelector('.sd-copy').textContent = 'Đã copy'; } catch (e) { out.querySelector('.sd-url').select(); } };
+    } catch (e) { out.textContent = 'Lỗi mạng: ' + e.message; }
+  };
+}
+document.addEventListener('click', (ev) => { const b = ev.target.closest('[data-share]'); if (b) { ev.preventDefault(); openShareDlg(b.dataset.share); } });
+
 // ô nhập mã cho dự án đang khóa
-function lockBoxHtml(name, pic) {
+function lockBoxHtml(name, pic, sid) {
   const who = (() => { try { return localStorage.getItem('stlWho') || ''; } catch (e) { return ''; } })();
-  return '<div class="lockbox" data-n="' + escapeHtml(name) + '"><div class="lk-t">🔒 Chi tiết dự án đang khóa</div>' +
+  return '<div class="lockbox" data-n="' + escapeHtml(name) + '" data-s="' + escapeHtml(sid || '') + '"><div class="lk-t">🔒 Chi tiết dự án đang khóa</div>' +
     '<div class="lk-s">Xin mã 6 số từ anh Quang' + (pic ? ' hoặc ' + escapeHtml(pic) : '') + ' (Google Authenticator), xem được ' + 15 + ' phút.</div>' +
     '<div class="lk-f"><input class="lk-who" placeholder="Tên bạn" value="' + escapeHtml(who) + '" maxlength="60"><input class="lk-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Mã 6 số"><button type="button" class="lk-go">Mở khóa</button></div><div class="lk-msg"></div></div>';
 }
@@ -1629,7 +1789,7 @@ document.addEventListener('click', async (ev) => {
   try { localStorage.setItem('stlWho', who); } catch (e) {}
   go.disabled = true; msg.textContent = 'Đang kiểm tra…';
   try {
-    const r = await fetch(WEB_APP_URL + '?action=unlock&project=' + encodeURIComponent(name) + '&code=' + code + '&who=' + encodeURIComponent(who), { cache: 'no-store' });
+    const r = await fetch(WEB_APP_URL + '?action=unlock&s=' + encodeURIComponent(box.dataset.s || '') + '&code=' + code + '&who=' + encodeURIComponent(who), { cache: 'no-store' });
     const j = await r.json();
     if (!j.ok) { msg.textContent = j.error || 'Không mở được.'; go.disabled = false; return; }
     AUTH.setProj(j.project, { tk: j.tk, exp: j.exp });
@@ -1643,7 +1803,7 @@ setInterval(() => {
   const gone = AUTH.prune();
   const P = AUTH.proj(), keys = Object.keys(P);
   if (gone) reloadAll();
-  if (!keys.length || AUTH.team()) { bar.style.display = 'none'; return; }
+  if (!keys.length || (AUTH.team() && !SHARE_ID)) { bar.style.display = 'none'; return; }
   bar.style.display = '';
   bar.innerHTML = keys.map((k) => '<span>🔓 <b>' + escapeHtml(k) + '</b> · còn ' + fmtLeft(P[k].exp - Date.now()) + ' <button type="button" data-lock="' + escapeHtml(k) + '">Khóa ngay</button></span>').join('');
 }, 1000);
@@ -1803,7 +1963,7 @@ function cardHtml(d) {
     <div class="drawing-links">${window.stlBtnsMain ? window.stlBtnsMain(d) : ''}</div>
 
     <div class="card-foot">
-      <span>Cập nhật: <b>${escapeHtml(d.ngay)||'—'}</b> · PIC <span class="pic">${escapeHtml(d.nguoi||'—')}</span></span>
+      <span>Cập nhật: <b>${escapeHtml(d.ngay)||'—'}</b> · PIC <span class="pic">${escapeHtml(d.nguoi||'—')}</span> <button type="button" class="share-btn" data-share="${escapeHtml(d.ten)}" title="Tạo link chia sẻ dự án này">🔗 Chia sẻ</button></span>
       <span class="recency" style="color:${rec.color};background:${rec.bg}">${escapeHtml(d.loctg)||'—'}</span>
     </div>
   </div>`;
@@ -1861,6 +2021,7 @@ async function loadData(isManual) {
     const res = await fetch(WEB_APP_URL + '?action=listProjects' + AUTH.qs(), { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
+    if (json && json.needLogin) { AUTH.logout(); setPageMode(); renderGate(); renderAuthBox(); return; }
     if (json.error) throw new Error(json.error);
     DATA = jsonToData(json);
     loadingEl.style.display = 'none';
@@ -1885,9 +2046,14 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
 document.getElementById('refreshBtn').addEventListener('click', () => loadData(true));
 
 renderAuthBox();
-(function () { try { const q = new URLSearchParams(location.search).get('p'); if (q) { const i = document.getElementById('searchInput'); i.value = q; } } catch (e) {} })();
-loadData(false).then(() => { const i = document.getElementById('searchInput'); if (i && i.value) i.dispatchEvent(new Event('input')); });
-setInterval(() => loadData(false), 300000);
+setPageMode();
+if (SHARE_ID) { loadShare(); }
+else if (!AUTH.team()) { renderGate(); }
+else {
+  (function () { try { const q = new URLSearchParams(location.search).get('p'); if (q) { const i = document.getElementById('searchInput'); i.value = q; } } catch (e) {} })();
+  loadData(false).then(() => { const i = document.getElementById('searchInput'); if (i && i.value) i.dispatchEvent(new Event('input')); });
+}
+setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
 </script>
 <script>
 /* @preserve
