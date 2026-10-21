@@ -1247,6 +1247,22 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-stat em { font-style: normal; font-size: 12px; font-weight: 600; color: #33415a; min-height: 15px; }
   .mp-statnote { font-size: 11.5px; color: var(--muted); margin: 0 0 10px; }
   .mp-box { position: relative; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .ms-on, .ms-on .leaflet-interactive, .ms-on .leaflet-grab { cursor: crosshair !important; }
+  .ms-on .leaflet-interactive, .ms-on .leaflet-marker-icon { pointer-events: none !important; }
+  .ms-pop .leaflet-popup-content { margin: 6px; }
+  .ms-menu { display: flex; flex-direction: column; gap: 3px; min-width: 150px; }
+  .ms-menu button { font: inherit; font-size: 13px; text-align: left; border: 0; background: none; padding: 6px 8px; border-radius: 6px; cursor: pointer; color: #1d2b44; }
+  .ms-menu button:hover { background: #eef2f8; }
+  .ms-lbl { background: rgba(255,255,255,.95); border: 1px solid #ff3b30; color: #b0170f; font-weight: 700; font-size: 12px; padding: 2px 7px; box-shadow: none; text-align: center; }
+  .ms-lbl small { font-weight: 600; color: #6b3a36; }
+  .ms-lbl::before { display: none; }
+  .ms-hint { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; background: rgba(29,43,68,.92); color: #fff; font-size: 12px; padding: 6px 10px; border-radius: 8px; max-width: min(560px, calc(100% - 260px)); text-align: center; line-height: 1.6; }
+  .ms-hint button { font: inherit; font-size: 12px; margin-left: 6px; border: 0; border-radius: 5px; padding: 2px 9px; cursor: pointer; background: #fff; color: #1d2b44; font-weight: 600; }
+  .ms-hint button[data-k="x"] { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.6); }
+  @media (max-width: 600px) { .ms-hint { max-width: calc(100% - 20px); bottom: 64px; } }
+  .mp-ratio { background: rgba(255,255,255,.88); border: 1px solid #9aa4b5; border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: 600; line-height: 1.5; color: #1d2b44; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .leaflet-bottom.leaflet-left .leaflet-control-scale { margin-bottom: 4px; }
+  .leaflet-control-scale-line { background: rgba(255,255,255,.88); color: #1d2b44; font-weight: 600; border-color: #1d2b44; }
   #mpLeaf { height: 68vh; min-height: 380px; background: #dfe7f1; z-index: 0; }
   .mp-tip.leaflet-tooltip { font-size: 11.5px; font-weight: 700; color: #1f2a3d; background: rgba(255,255,255,.92); border: 0; box-shadow: 0 1px 3px rgba(0,0,0,.3); padding: 2px 6px; }
   .mp-lblonly span { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; font-size: 11.5px; font-weight: 700; color: #fff; text-shadow: 0 0 3px #000, 0 0 3px #000; pointer-events: none; }
@@ -1618,6 +1634,116 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwZU_DWA2us9jtztWOV
 
 let DATA = [];
 
+/* ===== Đo khoảng cách / diện tích: chuột phải (điện thoại: giữ lâu) lên bản đồ → chọn kiểu đo ===== */
+const MS_R = 6378137;   // bán kính Trái Đất (m), dùng cho diện tích mặt cầu
+function msArea(pts) {  // diện tích đa giác trên mặt cầu (m²) — cách tính giống Leaflet.draw
+  let a = 0; const n = pts.length; if (n < 3) return 0;
+  for (let i = 0; i < n; i++) {
+    const p1 = pts[i], p2 = pts[(i + 1) % n], d = Math.PI / 180;
+    a += (p2.lng - p1.lng) * d * (2 + Math.sin(p1.lat * d) + Math.sin(p2.lat * d));
+  }
+  return Math.abs(a * MS_R * MS_R / 2);
+}
+function msLen(map, pts, closed) { let t = 0; for (let i = 1; i < pts.length; i++) t += map.distance(pts[i - 1], pts[i]); if (closed && pts.length > 2) t += map.distance(pts[pts.length - 1], pts[0]); return t; }
+const msNum = (v, k) => v.toLocaleString('vi-VN', { maximumFractionDigits: k });
+const msFmtLen = (m) => m < 1000 ? msNum(m, 1) + ' m' : msNum(m / 1000, 3) + ' km';
+const msFmtArea = (a) => msNum(a, 0) + ' m²' + (a >= 1000 ? ' (' + msNum(a / 1e4, 2) + ' ha)' : '');
+function addMeasure(map) {
+  const g = L.layerGroup().addTo(map);
+  const st = { mode: null, pts: [], shape: null, ghost: null, tip: null, dots: null };
+  const box = map.getContainer();
+  const sty = { color: '#ff3b30', weight: 2.5, dashArray: '6 4', interactive: false };
+  function stop(keep) {
+    if (!st.mode) return;
+    const pts = st.pts.filter((p, i, a) => i === 0 || !p.equals(a[i - 1]));   // bỏ điểm trùng do bấm đúp
+    if (st.ghost) g.removeLayer(st.ghost);
+    if (st.tip) g.removeLayer(st.tip);
+    if (st.shape) g.removeLayer(st.shape);
+    if (st.dots) g.removeLayer(st.dots);
+    const ok = keep && (st.mode === 'd' ? pts.length >= 2 : pts.length >= 3);
+    if (ok) {
+      const res = L.featureGroup().addTo(g);
+      (st.mode === 'd' ? L.polyline(pts, Object.assign({}, sty, { dashArray: null })) : L.polygon(pts, Object.assign({}, sty, { dashArray: null, fillColor: '#ff3b30', fillOpacity: 0.15 }))).addTo(res);
+      pts.forEach((p) => L.circleMarker(p, { radius: 3, color: '#ff3b30', fillColor: '#fff', fillOpacity: 1, weight: 2, interactive: false }).addTo(res));
+      const txt = st.mode === 'd' ? 'Dài ' + msFmtLen(msLen(map, pts)) : msFmtArea(msArea(pts)) + '<br><small>Chu vi ' + msFmtLen(msLen(map, pts, true)) + '</small>';
+      const at = st.mode === 'd' ? pts[pts.length - 1] : L.polygon(pts).getBounds().getCenter();
+      L.tooltip({ permanent: true, direction: st.mode === 'd' ? 'right' : 'center', className: 'ms-lbl', interactive: false }).setLatLng(at).setContent(txt).addTo(res);
+    }
+    st.mode = null; st.pts = []; st.shape = st.ghost = st.tip = st.dots = null;
+    map._mpMeasuring = false; box.classList.remove('ms-on');
+    map.doubleClickZoom.enable();
+    const h = box.querySelector('.ms-hint'); if (h) h.remove();
+  }
+  function redraw(cur) {
+    const pts = st.pts, all = cur ? pts.concat([cur]) : pts;
+    if (st.shape) g.removeLayer(st.shape);
+    st.shape = (st.mode === 'd' ? L.polyline(all, sty) : L.polygon(all, Object.assign({}, sty, { fillColor: '#ff3b30', fillOpacity: 0.12 }))).addTo(g);
+    if (st.dots) g.removeLayer(st.dots);
+    st.dots = L.layerGroup(pts.map((p) => L.circleMarker(p, { radius: 3, color: '#ff3b30', fillColor: '#fff', fillOpacity: 1, weight: 2, interactive: false }))).addTo(g);
+    const txt = st.mode === 'd' ? msFmtLen(msLen(map, all)) : (all.length >= 3 ? msFmtArea(msArea(all)) : 'Bấm thêm điểm');
+    const at = cur || pts[pts.length - 1];
+    if (!st.tip) st.tip = L.tooltip({ permanent: true, direction: 'right', offset: [12, 0], className: 'ms-lbl', interactive: false }).setLatLng(at).setContent(txt).addTo(g);
+    else st.tip.setLatLng(at).setContent(txt);
+  }
+  function start(mode, ll) {
+    stop(false);
+    st.mode = mode; st.pts = [ll];
+    map._mpMeasuring = true; box.classList.add('ms-on');
+    map.doubleClickZoom.disable();
+    const h = L.DomUtil.create('div', 'ms-hint', box);
+    h.innerHTML = (mode === 'd' ? 'Đo khoảng cách' : 'Đo diện tích') + ': bấm để thêm điểm · <b>bấm đúp / Enter</b> để kết thúc · <b>Esc</b> để hủy · <b>Backspace</b> xóa điểm vừa chọn ' +
+      '<button type="button" data-k="ok">Xong</button><button type="button" data-k="x">Hủy</button>';
+    L.DomEvent.disableClickPropagation(h);
+    h.querySelector('[data-k="ok"]').onclick = () => stop(true);
+    h.querySelector('[data-k="x"]').onclick = () => stop(false);
+    redraw();
+  }
+  map.on('click', (e) => { if (!st.mode) return; st.pts.push(e.latlng); redraw(); });
+  map.on('mousemove', (e) => { if (st.mode && st.pts.length) redraw(e.latlng); });
+  map.on('dblclick', () => { if (st.mode) stop(true); });
+  document.addEventListener('keydown', (e) => {
+    if (!st.mode) return;
+    if (e.key === 'Escape') stop(false);
+    else if (e.key === 'Enter') stop(true);
+    else if (e.key === 'Backspace' && st.pts.length > 1) { e.preventDefault(); st.pts.pop(); redraw(); }
+  });
+  map.on('contextmenu', (e) => {
+    if (st.mode) { stop(true); return; }   // đang đo: chuột phải = kết thúc
+    const d = L.DomUtil.create('div', 'ms-menu');
+    const has = g.getLayers().length > 0;
+    d.innerHTML = '<button type="button" data-m="d">📏 Đo khoảng cách</button><button type="button" data-m="a">⬠ Đo diện tích</button>' +
+      (has ? '<button type="button" data-m="c">🗑 Xóa các phép đo</button>' : '');
+    const pop = L.popup({ className: 'ms-pop', closeButton: false, offset: [0, 4], autoPan: false }).setLatLng(e.latlng).setContent(d).openOn(map);
+    d.querySelectorAll('button').forEach((b) => b.onclick = () => {
+      map.closePopup(pop);
+      if (b.dataset.m === 'c') g.clearLayers(); else start(b.dataset.m, e.latlng);
+    });
+  });
+}
+
+/* ===== Thước tỷ lệ xích cho bản đồ Leaflet: thanh chia mét/km + tỷ lệ số ước tính, tự cập nhật khi zoom/kéo ===== */
+function addScaleBar(map) {
+  if (!map || typeof L === 'undefined') return;
+  addMeasure(map);
+  L.control.scale({ position: 'bottomleft', metric: true, imperial: false, maxWidth: 140 }).addTo(map);
+  const C = L.control({ position: 'bottomleft' });
+  C.onAdd = function () {
+    const d = L.DomUtil.create('div', 'mp-ratio');
+    d.title = 'Tỷ lệ ước tính theo màn hình 96 dpi; thước xích bên dưới mới là thước đo chính xác';
+    const upd = () => {
+      const sz = map.getSize(), y = sz.y / 2, x = sz.x / 2;
+      const m = map.distance(map.containerPointToLatLng([x - 50, y]), map.containerPointToLatLng([x + 50, y])) / 100; // mét / pixel
+      let r = m * 96 / 0.0254;                                   // 1 pixel = 0,0254/96 m trên màn hình
+      const p = Math.pow(10, Math.max(0, Math.floor(Math.log10(r)) - 1)); r = Math.round(r / p) * p;  // làm tròn 2 chữ số
+      d.textContent = isFinite(r) && r > 0 ? 'Tỷ lệ ≈ 1:' + r.toLocaleString('vi-VN') : '';
+    };
+    map.on('zoomend moveend resize', upd); setTimeout(upd, 0);
+    L.DomEvent.disableClickPropagation(d);
+    return d;
+  };
+  C.addTo(map);
+}
+
 /* ===== BẢO MẬT: vé xem (team đăng nhập Google / người ngoài nhập mã Authenticator 15 phút) ===== */
 const AUTH = (function () {
   const K = 'stlAuth';
@@ -1744,6 +1870,7 @@ async function loadShare() {
   if (d.shapes && d.shapes.length && typeof L !== 'undefined') {
     if (shMap) { try { shMap.remove(); } catch (e) {} }
     shMap = L.map('shMap', { scrollWheelZoom: false });
+    addScaleBar(shMap);
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Ảnh: Esri, Maxar' }).addTo(shMap);
     const g = L.featureGroup().addTo(shMap);
     d.shapes.forEach((s) => (s.f || []).forEach((f) => {
@@ -2887,6 +3014,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
     if (LM.built) return;
     const map = L.map('mpLeaf', { minZoom: 5, maxZoom: 19, zoomSnap: 0.5 }).setView([16.2, 106.3], 5);
     LM.map = map;
+    addScaleBar(map);
     LM.tiles.osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
     LM.tiles.sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Ảnh: Esri, Maxar, Earthstar Geographics' });
     LM.tiles[LM.base].addTo(map);
@@ -2945,6 +3073,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
     const refresh = () => { lsSet('sddOffL', JSON.stringify([...offL])); lsSet('sddOffP', JSON.stringify([...offP])); if (LM.sdd.rerenderTiles) LM.sdd.rerenderTiles(); };
     // bấm vào bản đồ -> hiện loại đất tại điểm bấm
     map.on('click', (e) => {
+      if (map._mpMeasuring) return;   // đang đo khoảng cách/diện tích
       if (Date.now() - (LM.lastPick || 0) < 400 || map.getZoom() < 11) return;
       if ((onDS || onGT) && map.hasLayer(LM.gtl)) {
         let gh = null;
