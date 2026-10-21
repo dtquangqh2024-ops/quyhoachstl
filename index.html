@@ -1267,6 +1267,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .stl-btns { display: grid; gap: 5px; width: 100%; flex: 1 1 100%; min-width: 0; }
   .stl-r1 { display: grid; grid-template-columns: 1fr 1fr 1.3fr 1fr 1.4fr; gap: 4px; }
   .stl-r2 { display: grid; grid-template-columns: 1fr 1.25fr 1.1fr .85fr; gap: 4px; }
+  .stl-r3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+  .stl-r3 .drawing-btn { border-color: #b9a6e0; color: #5b3fa3; background: #f7f4fd; }
   .stl-btns i.e { font-style: normal; }
   .stl-btns .drawing-btn { display: block; text-align: center; padding: 6px 2px; font-size: 11.5px; line-height: 1.2; overflow: hidden; text-overflow: clip; white-space: nowrap; cursor: pointer; font-family: inherit; }
   @media (max-width: 440px) { .stl-btns .drawing-btn { font-size: 10.5px; padding: 6px 0; } .stl-btns i.e { display: none; } }
@@ -1307,6 +1309,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 .ind-tab th.stg.dx { border-top: 3px solid #9aa4b5; }
 .ind-tab th.stg.ct { border-top: 3px solid var(--st-ctdt); }
 .ind-tab th.stg.qd { border-top: 3px solid var(--st-qd); }
+.ind-tab th.stg.tkcs { border-top: 3px solid #7a5cc4; }
 .ind-tab th.stg.off { color: var(--muted); font-weight: 500; }
 .ind-tab th.dif, .ind-tab td.dif { background: #f9fafc; border-left: 1px solid var(--line); }
 .ind-tab td.dif { font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -1323,7 +1326,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 .ind-note div { margin-top: 6px; }
 .ind-note .lw { color: #8a4a12; }
 .stg-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; background: #9aa4b5; }
-.stg-dot.ct { background: var(--st-ctdt); } .stg-dot.qd { background: var(--st-qd); }
+.stg-dot.ct { background: var(--st-ctdt); } .stg-dot.qd { background: var(--st-qd); } .stg-dot.tkcs { background: #7a5cc4; }
 @media (max-width: 600px) { .ind-modal { padding: 0; } .ind-box { border-radius: 0; min-height: 100vh; } }
 .ind-tab thead th:first-child { text-align: left; }
 @media (max-width: 600px) { .ind-tab { min-width: 480px; } .ind-tab tbody th { min-width: 110px; } }
@@ -1337,7 +1340,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .chip, details.tl-pick > summary { border-radius: 4px; font-size: 11.5px; padding: 5px 10px; }
   .drawing-btn { border-radius: 4px; font-size: 10.5px; padding: 4px 8px; }
   .stl-btns .drawing-btn { border-radius: 4px; font-size: 10.5px; padding: 5px 1px; letter-spacing: -.1px; }
-  .stl-r1, .stl-r2 { gap: 3px; }
+  .stl-r1, .stl-r2, .stl-r3 { gap: 3px; }
   @media (max-width: 440px) { .stl-btns .drawing-btn { font-size: 10px; padding: 5px 0; } }
   @media (max-width: 520px) { .lg-btns .drawing-btn { font-size: 11px; padding: 5px 8px; } }
   .badge, .lg-badge, .recency { border-radius: 4px; font-size: 10.5px; padding: 3px 7px; }
@@ -1725,8 +1728,11 @@ async function loadShare() {
   if (d.pl) html += '<div class="sh-card"><h3>Pháp lý</h3>' + (Object.keys(d.pl).length ? kv(d.pl) : '<p class="sh-none">Chưa có thông tin pháp lý.</p>') + '</div>';
   if (d.ct) {
     const by = {}; d.ct.forEach((r) => { by[r.gd] = r; });
+    if (!by['TKCS']) d.ct.forEach((r) => { if (/^\s*tkcs\s*$/i.test(r.gd || '')) by['TKCS'] = r; });
     const stg = ['Đề xuất', 'CTĐT', 'QĐPD'].filter((g) => by[g]);
     const rows = SH_IND.filter(([k]) => stg.some((g) => by[g][k] != null && by[g][k] !== ''));
+    // TKCS: chỉ đối chiếu chỉ tiêu đã có trong QĐPD
+    if (by['TKCS'] && by['QĐPD']) { const t = by['TKCS'], q = by['QĐPD'], c = {}; SH_IND.forEach(([k]) => { if (q[k] != null && q[k] !== '') c[k] = t[k]; }); by['TKCS '] = c; stg.push('TKCS '); }
     html += '<div class="sh-card"><h3>Chỉ tiêu</h3>' + (stg.length && rows.length ?
       '<div class="sh-tw"><table class="sh-tb"><tr><th>Chỉ tiêu</th>' + stg.map((g) => '<th>' + g + '</th>').join('') + '</tr>' +
       rows.map(([k, t, u]) => '<tr><td>' + t + (u ? ' <span>(' + u + ')</span>' : '') + '</td>' + stg.map((g) => '<td>' + (by[g][k] == null ? '—' : shNum(by[g][k])) + '</td>').join('') + '</tr>').join('') + '</table></div>'
@@ -1819,6 +1825,10 @@ document.addEventListener('click', (ev) => { const b = ev.target.closest('[data-
 let state = { search: '', cdt: 'Tất cả', diadiem: 'Tất cả', tg: 'Tất cả' };
 
 // Dữ liệu lấy qua Apps Script Web App (trả JSON, mỗi dòng là 1 object theo tên cột trong Dashboard)
+const hdrKey = (s) => String(s == null ? '' : s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+// lấy giá trị ô đầu tiên có chữ trong các cột có tên khớp mẫu
+function pickHdr(p, re) { for (const k in p) { if (!re.test(hdrKey(k))) continue; const v = p[k]; if (v != null && String(v).trim()) return String(v); } return ''; }
+const RE_TKCS = /\btkcs\b|thiet ke co so/, RE_GPXD = /\bgpxd\b|giay phep xay dung/, RE_BIM = /\bbim\b/;
 function jsonToData(rows) {
   const out = [];
   for (const p of rows) {
@@ -1844,6 +1854,9 @@ function jsonToData(rows) {
       maps: p['Maps (ranh giới dự án)'] || '',
       dientich: (function(){ for (const k in p) { if (/di[eệ]n\s*t[ií]ch/i.test(k)) return p[k] || ''; } return ''; })(),
       video: p['Video hiện trạng'] || '',
+      tkcs: pickHdr(p, RE_TKCS),   // cột "Bản vẽ TKCS"
+      gpxd: pickHdr(p, RE_GPXD),   // cột "GPXD"
+      bim: pickHdr(p, RE_BIM),     // cột "Mô hình BIM"
     });
   }
   return out;
@@ -2253,6 +2266,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
 
   /* ---------- chuẩn hóa dữ liệu ---------- */
   const pickKey = (r, test) => { for (const k in r) if (test(norm(k))) return r[k]; return ''; };
+  const pickLink = (r, re) => { for (const k in r) { if (!re.test(norm(k))) continue; const m = String(r[k] == null ? '' : r[k]).match(/https?:\/\/[^\s<>"']+/i); if (m) return m[0]; } return ''; };
   function normalize(rows) {
     return rows.map((r) => {
       const g = (k) => (r[k] == null ? '' : r[k]);
@@ -2264,6 +2278,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
         tiendo: String(g('Tiến độ hiện tại')).trim(),
         pct: parsePct(g('Tiến độ (%)')),
         note: String(g('Ghi chú pháp lý')).trim(),
+        xl: { tkcs: pickLink(r, RE_TKCS), gpxd: pickLink(r, RE_GPXD), bim: pickLink(r, RE_BIM) },
         pos: parsePos(pickKey(r, (k) => k.indexOf('vi tri') === 0 || k.indexOf('toa do') >= 0 || k.indexOf('google map') >= 0)),
         warn: []
       };
@@ -2296,7 +2311,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
       const n = String(d.ten || '').trim();
       if (!n || have.has(norm(n))) return;
       have.add(norm(n));
-      ALL.push({ name: n, synth: true, tinhRaw: '', ctdt: { date: null, so: '', pdf: '', has: false }, qd: { date: null, so: '', pdf: '', banve: '', has: false }, tiendo: '', pct: null, note: '', pos: null, warn: [], status: 'nc' });
+      ALL.push({ name: n, synth: true, tinhRaw: '', ctdt: { date: null, so: '', pdf: '', has: false }, qd: { date: null, so: '', pdf: '', banve: '', has: false }, tiendo: '', pct: null, note: '', xl: {}, pos: null, warn: [], status: 'nc' });
     });
     ALL.forEach((o) => {
       o.dash = dm.get(norm(o.name)) || null;
@@ -2420,9 +2435,9 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
       json.forEach((r) => {
         if (!r || !r.ten) return;
         const k = norm(r.ten), g = norm(r.gd);
-        const sg = g === 'de xuat' ? 'dx' : g === 'ctdt' ? 'ct' : g === 'qdpd' ? 'qd' : '';
+        const sg = g === 'de xuat' ? 'dx' : g === 'ctdt' ? 'ct' : g === 'qdpd' ? 'qd' : (g === 'tkcs' || g === 'thiet ke co so') ? 'tkcs' : '';
         if (!sg) return;
-        const e = m.get(k) || { dx: null, ct: null, qd: null };
+        const e = m.get(k) || { dx: null, ct: null, qd: null, tkcs: null };
         e[sg] = r; m.set(k, e);
       });
       IND = m; indState = 'ok'; indMsg = '';
@@ -2493,8 +2508,10 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
     $('lgWarn').innerHTML = out.length ? '<details class="lg-note"><summary>⚠ ' + out.length + ' lưu ý về dữ liệu — bấm để xem</summary><div style="margin-top:6px">' + out.join('<br><br>') + '</div></details>' : '';
   }
   function btn(href, label) { return href ? '<a class="drawing-btn" href="' + esc(href) + '" target="_blank" rel="noopener">' + label + '</a>' : ''; }
-  const indBtn = (o, i) => (o.ind && (o.ind.dx || o.ind.ct || o.ind.qd)) ? '<button class="drawing-btn" data-act="ind" data-i="' + i + '">📊 Chỉ tiêu</button>' : '';
+  const indBtn = (o, i) => (o.ind && (o.ind.dx || o.ind.ct || o.ind.qd || o.ind.tkcs)) ? '<button class="drawing-btn" data-act="ind" data-i="' + i + '">📊 Chỉ tiêu</button>' : '';
   const urlOne = (v) => { const m = String(v == null ? '' : v).match(/https?:\/\/[^\s<>"']+/i); return m ? m[0] : ''; };
+  // link kiểu GG Maps / viewer BIM: nhận cả link dán thiếu https:// (bắt đầu bằng www.)
+  const urlLoose = (v) => { const u = urlOne(v); if (u) return u; const m = String(v == null ? '' : v).match(/\bwww\.[^\s<>"']+/i); return m ? 'https://' + m[0] : ''; };
   // 2 dòng nút chung: BVĐX · CTĐT · BV CTĐT · QĐPD · BV QĐPD / GG Maps · Total Maps · So sánh
   function stlBtnsFor(o, d) {
     d = d || {};
@@ -2507,7 +2524,10 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
       qd: o ? su(o.qd.pdf) : '',
       bqd: o ? su(o.banve) : su(d.banveQH500),
       gg: (o && o.mapsUrl) || urlOne(d.maps),
-      vd: urlOne(d.video)
+      vd: urlOne(d.video),
+      tkcs: urlLoose(d.tkcs) || (o && o.xl && o.xl.tkcs) || (o && o.ind && o.ind.tkcs ? su(o.ind.tkcs.link) : ''),
+      gpxd: urlLoose(d.gpxd) || (o && o.xl && o.xl.gpxd) || '',
+      bim: urlLoose(d.bim) || (o && o.xl && o.xl.bim) || ''
     };
     const A = (u, t, tip) => u
       ? '<a class="drawing-btn" href="' + esc(u) + '" target="_blank" rel="noopener" title="' + tip + '">' + t + '</a>'
@@ -2516,13 +2536,16 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
       ? '<button type="button" class="drawing-btn" data-stl="' + key + '" data-n="' + esc(name) + '" title="' + tip + '">' + t + '</button>'
       : '<span class="drawing-btn off" aria-disabled="true" title="' + tip + ' — chưa có">' + t + '</span>';
     const canMap = !!(o && (o.shapes || (o.pos && o.pos.ok)));
-    const canInd = !!(o && o.ind && (o.ind.dx || o.ind.ct || o.ind.qd));
+    // hàng 3 (TKCS · GPXD · BIM): chỉ hiện nút của dự án đã có link, không có thì ẩn hẳn
+    const ex = [[U.tkcs, 'BV TKCS', 'Bản vẽ thiết kế cơ sở (TKCS)'], [U.gpxd, 'GPXD', 'Giấy phép xây dựng (GPXD)'], [U.bim, '<i class="e">🧊 </i>BIM', 'Mô hình BIM']].filter((x) => x[0]);
+    const r3 = ex.length ? '<div class="stl-r3">' + ex.map((x) => A(x[0], x[1], x[2])).join('') + '</div>' : '';
+    const canInd = !!(o && o.ind && (o.ind.dx || o.ind.ct || o.ind.qd || o.ind.tkcs));
     return '<div class="stl-btns"><div class="stl-r1">' +
       A(U.dx, 'BVĐX', 'Bản vẽ đề xuất') + A(U.ct, 'CTĐT', 'Văn bản chủ trương đầu tư (CTĐT)') + A(U.bct, 'BV CTĐT', 'Bản vẽ chủ trương (CTĐT)') +
       A(U.qd, 'QĐPD', 'Quyết định phê duyệt đồ án (QĐPD)') + A(U.bqd, 'BV QĐPD', 'Bản vẽ đã duyệt (QĐPD)') +
       '</div><div class="stl-r2">' +
       A(U.gg, '<i class="e">📍 </i>GG Maps', 'Ranh giới dự án trên Google My Maps') + B(canMap, '<i class="e">🗺 </i>Total Maps', 'map', 'Xem trên bản đồ tổng thể các dự án') + B(canInd, '<i class="e">📊 </i>So sánh', 'ind', 'So sánh chỉ tiêu Đề xuất – CTĐT – QĐPD') + A(U.vd, '<i class="e">🎥 </i>Video', 'Video hiện trạng') +
-      '</div></div>';
+      '</div>' + r3 + '</div>';
   }
   window.stlBtnsMain = function (d) { return stlBtnsFor(BYN.get(norm(d.ten)) || null, d); };
   function progHtml(o) {
@@ -2648,33 +2671,46 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
     const pct = pv >= 0.01 ? ' <small>(' + (d > 0 ? '+' : '−') + nf(pv) + '%)</small>' : '';
     return '<span class="' + (d > 0 ? 'dfu' : 'dfd') + '">' + (d > 0 ? '+' : '−') + nf(Math.abs(d)) + pct + '</span>';
   }
+  const TKCS_STG = ['tkcs', 'TKCS'];
   function indHtml(o) {
     const I = o.ind || {};
     const have = IND_STG.filter((s) => I[s[0]]);
     const pairs = [];
     for (let k = 1; k < have.length; k++) pairs.push([have[k - 1], have[k]]);
+    const T = I.tkcs || null, Q = I.qd || null;
+    // TKCS chỉ so với các chỉ tiêu đã có trong QĐPD QHCT 1/500
+    const tkOn = (k) => !!(T && Q && Q[k] != null && Q[k] !== '');
+    const NONE = '<span class="none">—</span>';
+    const tag = (r) => (r.tt === 'Chờ rà' ? '<small class="tag-cho">Kiểm tra</small>' : '');
     const rows = IND_ROWS.filter((r) => IND_STG.some((s) => I[s[0]] && I[s[0]][r[0]] != null && I[s[0]][r[0]] !== ''));
     const head = '<tr><th>Chỉ tiêu</th>' + IND_STG.map((s) => {
       const r = I[s[0]];
-      return '<th class="stg ' + s[0] + (r ? '' : ' off') + '">' + s[1] + (r ? (r.tt === 'Chờ rà' ? '<small class="tag-cho">Kiểm tra</small>' : '') : '<small>chưa có</small>') + '</th>';
-    }).join('') + pairs.map((p) => '<th class="dif">' + p[1][1] + ' so với ' + p[0][1] + '</th>').join('') + '</tr>';
+      return '<th class="stg ' + s[0] + (r ? '' : ' off') + '">' + s[1] + (r ? tag(r) : '<small>chưa có</small>') + '</th>';
+    }).join('') + (T ? '<th class="stg tkcs">TKCS' + tag(T) + '</th>' : '') +
+      pairs.map((p) => '<th class="dif">' + p[1][1] + ' so với ' + p[0][1] + '</th>').join('') +
+      (T && Q ? '<th class="dif">TKCS so với QĐPD</th>' : '') + '</tr>';
     const body = rows.map((r) => '<tr><th scope="row">' + r[1] + (r[2] && r[2] !== '%' ? '<small> (' + r[2] + ')</small>' : '') + '</th>' +
       IND_STG.map((s) => '<td>' + indCell(I[s[0]] ? I[s[0]][r[0]] : null, r[2]) + '</td>').join('') +
-      pairs.map((p) => '<td class="dif">' + (r[0] === 'tk' ? '<span class="none">—</span>' : indDiff(I[p[0][0]][r[0]], I[p[1][0]][r[0]])) + '</td>').join('') + '</tr>').join('');
-    const notes = have.map((s) => {
+      (T ? '<td>' + (tkOn(r[0]) ? indCell(T[r[0]], r[2]) : NONE) + '</td>' : '') +
+      pairs.map((p) => '<td class="dif">' + (r[0] === 'tk' ? NONE : indDiff(I[p[0][0]][r[0]], I[p[1][0]][r[0]])) + '</td>').join('') +
+      (T && Q ? '<td class="dif">' + (r[0] === 'tk' || !tkOn(r[0]) ? NONE : indDiff(Q[r[0]], T[r[0]])) + '</td>' : '') + '</tr>').join('');
+    const noteStg = have.concat(T ? [TKCS_STG] : []);
+    const notes = noteStg.map((s) => {
       const r = I[s[0]];
       const parts = [];
       if (r.nguon) parts.push('<div><b>Căn cứ:</b> ' + esc(r.nguon) + '</div>');
       if (r.ghichu) parts.push('<div><b>Ghi chú:</b> ' + esc(r.ghichu) + '</div>');
       if (r.luuy) parts.push('<div class="lw"><b>Lưu ý – đối chiếu:</b> ' + esc(r.luuy) + '</div>');
       const lk = su(r.link) ? '<div class="lg-btns" style="margin-top:6px">' + btn(su(r.link), '📐 Bản vẽ / hồ sơ ' + s[1]) + '</div>' : '';
-      return '<details class="ind-note"' + (have.length === 1 ? ' open' : '') + '><summary><span class="stg-dot ' + s[0] + '"></span>' + s[1] + (r.tt === 'Chờ rà' ? ' <small class="tag-cho">Kiểm tra</small>' : '') + ' — căn cứ & lưu ý</summary>' + (parts.join('') || '<div class="none">Chưa có ghi chú.</div>') + lk + '</details>';
+      return '<details class="ind-note"' + (noteStg.length === 1 ? ' open' : '') + '><summary><span class="stg-dot ' + s[0] + '"></span>' + s[1] + (r.tt === 'Chờ rà' ? ' <small class="tag-cho">Kiểm tra</small>' : '') + ' — căn cứ & lưu ý</summary>' + (parts.join('') || '<div class="none">Chưa có ghi chú.</div>') + lk + '</details>';
     }).join('');
-    const cho = have.some((s) => I[s[0]].tt === 'Chờ rà');
+    const cho = noteStg.some((s) => I[s[0]].tt === 'Chờ rà');
+    const anyDiff = pairs.length || (T && Q);
     return '<div class="ind-head"><div><h3>' + esc(o.name) + '</h3><div class="sub"><span class="lg-badge ' + o.status + '">' + ST[o.status].label + '</span>' + (o.prov ? ' <span>📍 ' + esc(o.prov.name) + '</span>' : '') + '</div></div>' +
       '<button class="ind-x" data-ind-close aria-label="Đóng">✕</button></div>' +
       (rows.length ? '<div class="ind-scroll"><table class="ind-tab"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>' : '<div class="lg-empty">Chưa có chỉ tiêu nào được nhập cho dự án này.</div>') +
-      (pairs.length ? '<p class="ind-hint">Chênh lệch = giai đoạn sau trừ giai đoạn trước. Ô “—” là chưa có số liệu.</p>' : '<p class="ind-hint">Dự án mới có 1 giai đoạn nên chưa có gì để so sánh.</p>') +
+      (anyDiff ? '<p class="ind-hint">Chênh lệch = giai đoạn sau trừ giai đoạn trước. Ô “—” là chưa có số liệu.</p>' : '<p class="ind-hint">Dự án mới có 1 giai đoạn nên chưa có gì để so sánh.</p>') +
+      (T ? '<p class="ind-hint">' + (Q ? 'Cột TKCS chỉ đối chiếu các chỉ tiêu đã có trong QĐPD QHCT 1/500.' : 'Chưa có số liệu QĐPD QHCT 1/500 nên cột TKCS chưa đối chiếu.') + '</p>' : '') +
       (cho ? '<p class="ind-hint cho">“Kiểm tra”: số liệu nhập từ văn bản Quyết định, cần xác nhận lại theo mục Căn cứ.</p>' : '') + notes;
   }
   function openInd(o) {
