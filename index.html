@@ -1456,6 +1456,13 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .sd-out { margin-top: 10px; display: flex; gap: 6px; } .sd-url { flex: 1; min-width: 0; font: inherit; font-size: 12px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: #f6f8fb; }
   .sd-copy { font: inherit; font-weight: 600; padding: 6px 12px; border: 1px solid var(--navy); border-radius: 4px; background: #fff; color: var(--navy); cursor: pointer; }
   .sd-n { margin-top: 12px; font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+
+  /* lớp giao thông trong ô điều khiển bản đồ */
+  .mp-gt { border-top: 1px solid var(--line); margin-top: 7px; padding-top: 6px; display: grid; gap: 4px; }
+  .mp-gt .mp-sdd-t { font-weight: 600; }
+  .mp-gt i.ln { display: inline-block; width: 16px; height: 4px; border-radius: 2px; flex: none; }
+  .mp-gt i.ln.ds { background: linear-gradient(90deg, #4c5f99 0 33%, #00cc00 33% 66%, #ff0000 66%); }
+  .mp-gt i.ln.gt { background: #fff1b8; box-shadow: 0 0 0 1px rgba(0,0,0,.15); }
 </style>
 </head>
 <body>
@@ -2883,10 +2890,42 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
       }]
     });
     if (on) LM.sdd.addTo(map);
+    /* lớp đường sắt đô thị + giao thông (qhgt.pmtiles, QHC tầm nhìn 100 năm) */
+    let onDS = lsGet('gtDs', '0') === '1', onGT = lsGet('gtGt', '0') === '1';
+    map.createPane('gtPane'); map.getPane('gtPane').style.zIndex = 270;
+    const wz = (z, f) => (f.props.w || 1) * (z >= 15 ? 1.8 : z >= 13 ? 1.3 : z >= 11 ? 0.9 : 0.6);
+    LM.gtl = protomapsL.leafletLayer({
+      url: 'qhgt.pmtiles', pane: 'gtPane', maxDataZoom: 15, minZoom: 9, bounds: SDD_BOUNDS,
+      attribution: 'Giao thông, ĐSĐT – QHC Thủ đô tầm nhìn 100 năm (tham khảo)',
+      paintRules: [
+        { dataLayer: 'gt', filter: (z, f) => onGT && f.props.k === 'gt', symbolizer: new protomapsL.LineSymbolizer({ color: (z, f) => f.props.c, width: wz, opacity: 0.95, lineCap: 'round', lineJoin: 'round' }) },
+        { dataLayer: 'gt', filter: (z, f) => onDS && f.props.k === 'ds', symbolizer: new protomapsL.LineSymbolizer({ color: (z, f) => f.props.c, width: (z, f) => wz(z, f) * 1.15, opacity: 1, lineCap: 'round', lineJoin: 'round' }) },
+        { dataLayer: 'gt', filter: (z, f) => onDS && f.props.k === 'ds' && f.props.d == 1, symbolizer: new protomapsL.LineSymbolizer({ color: '#ffffff', width: 1, dash: [6, 6], dashColor: '#ffffff', dashWidth: 1 }) },
+        { dataLayer: 'gt', filter: (z, f) => onDS && f.props.k === 'ga' && z >= 11, symbolizer: new protomapsL.CircleSymbolizer({ radius: (z, f) => (f.props.t ? 1.4 : 1) * (z >= 14 ? 4.5 : 3), fill: '#ffffff', stroke: '#13233f', width: 1.4 }) }
+      ]
+    });
+    if (onDS || onGT) LM.gtl.addTo(map);
+    const gtRefresh = () => { lsSet('gtDs', onDS ? '1' : '0'); lsSet('gtGt', onGT ? '1' : '0'); if (onDS || onGT) { if (!map.hasLayer(LM.gtl)) LM.gtl.addTo(map); else if (LM.gtl.rerenderTiles) LM.gtl.rerenderTiles(); } else if (map.hasLayer(LM.gtl)) map.removeLayer(LM.gtl); };
     const refresh = () => { lsSet('sddOffL', JSON.stringify([...offL])); lsSet('sddOffP', JSON.stringify([...offP])); if (LM.sdd.rerenderTiles) LM.sdd.rerenderTiles(); };
     // bấm vào bản đồ -> hiện loại đất tại điểm bấm
     map.on('click', (e) => {
-      if (!on || !map.hasLayer(LM.sdd) || Date.now() - (LM.lastPick || 0) < 400 || map.getZoom() < 11) return;
+      if (Date.now() - (LM.lastPick || 0) < 400 || map.getZoom() < 11) return;
+      if ((onDS || onGT) && map.hasLayer(LM.gtl)) {
+        let gh = null;
+        try {
+          LM.gtl.queryTileFeaturesDebug(e.latlng.lng, e.latlng.lat, 8).forEach((arr) => arr.forEach((x) => {
+            const p = x.feature.props; if (x.layerName !== 'gt') return;
+            if ((p.k === 'ds' || p.k === 'ga') && onDS) { if (!gh || gh.k !== 'ds') gh = p; } else if (p.k === 'gt' && onGT && !gh) gh = p;
+          }));
+        } catch (err) { gh = null; }
+        if (gh && gh.k !== 'ga') {
+          L.popup({ className: 'mp-sdd-pop', maxWidth: 260 }).setLatLng(e.latlng).setContent(
+            '<b><i style="background:' + esc(gh.c) + '"></i>' + esc(gh.k === 'ds' ? (gh.m ? 'Tuyến ' + gh.m : gh.l) : gh.l) + '</b>' +
+            '<div>' + esc(gh.k === 'ds' ? (gh.m ? gh.l + ' (đường sắt đô thị)' : 'Đường sắt') : 'Giao thông đô thị') + ' · QHC tầm nhìn 100 năm</div>').openOn(map);
+          return;
+        }
+      }
+      if (!on || !map.hasLayer(LM.sdd)) return;
       let hit = null;
       try {
         const res = LM.sdd.queryTileFeaturesDebug(e.latlng.lng, e.latlng.lat);
@@ -2911,8 +2950,12 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
         '<div class="mp-sdd-b"><div class="mp-sdd-r"><span>Độ đậm</span><input type="range" id="sddOp" min="10" max="100" step="5" value="' + op + '"><b id="sddOpV">' + op + '%</b></div>' +
         '<div class="mp-sdd-ph">' + Object.keys(SDD_PH).map((k) => '<button type="button" data-p="' + k + '" class="' + (offP.has(k) ? '' : 'on') + '" title="' + SDD_PH[k] + '">' + k + '</button>').join('') + '</div>' +
         '<details class="mp-sdd-lg"><summary>Chú giải, lọc loại đất</summary><div class="mp-sdd-tools"><button type="button" data-all="1">Hiện hết</button><button type="button" data-all="0">Tắt hết</button></div>' + groups + '</details>' +
-        '<div class="mp-sdd-n">Bấm vào bản đồ để xem loại đất. Chỉ để tham khảo, không thay hồ sơ pháp lý.</div></div>';
+        '</div>' +
+        '<div class="mp-gt"><label class="mp-sdd-t"><input type="checkbox" id="gtDs"' + (onDS ? ' checked' : '') + '> <i class="ln ds"></i>Đường sắt đô thị</label>' +
+        '<label class="mp-sdd-t"><input type="checkbox" id="gtGt"' + (onGT ? ' checked' : '') + '> <i class="ln gt"></i>Giao thông đô thị</label></div>';
       L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
+      d.querySelector('#gtDs').addEventListener('change', (e) => { onDS = e.target.checked; gtRefresh(); });
+      d.querySelector('#gtGt').addEventListener('change', (e) => { onGT = e.target.checked; gtRefresh(); });
       d.querySelector('#sddOn').addEventListener('change', (e) => { on = e.target.checked; lsSet('sddOn', on ? '1' : '0'); if (on) LM.sdd.addTo(map); else { map.removeLayer(LM.sdd); map.closePopup(); } d.classList.toggle('off', !on); });
       d.querySelector('#sddOp').addEventListener('input', (e) => { op = +e.target.value; LM.sdd.setOpacity(op / 100); d.querySelector('#sddOpV').textContent = op + '%'; lsSet('sddOp', String(op)); });
       d.querySelectorAll('.mp-sdd-ph button').forEach((b) => b.addEventListener('click', () => { const k = b.dataset.p; if (offP.has(k)) offP.delete(k); else offP.add(k); b.classList.toggle('on', !offP.has(k)); refresh(); }));
