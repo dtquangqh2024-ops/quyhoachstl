@@ -1515,6 +1515,30 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .lg-table th:nth-child(4), .lg-table td:nth-child(4) { min-width: 165px; }
   .lg-table td.nt { min-width: 220px; }
   .lg-table td.qk .stl-btns { width: 260px; }
+
+  /* ===== Bản đồ toàn màn hình (27/10) ===== */
+  .mp-fsctl a { display: flex !important; align-items: center; justify-content: center; width: 34px !important; height: 34px !important; line-height: 1 !important; color: #1d2b44; background: #fff; }
+  .mp-fsctl a:hover { background: #eef2f8; }
+  .mp-fsctl svg { display: block; }
+  body.mp-fs-on { overflow: hidden; }
+  body.mp-fs-on .mp-box { position: fixed; inset: 0; z-index: 50; border: 0; border-radius: 0; background: #dfe7f1; }
+  body.mp-fs-on #mpLeaf { height: 100%; min-height: 0; }
+  .mp-fsui { display: none; }
+  body.mp-fs-on .mp-fsui { display: inline-flex; }
+  .mp-fsui { position: absolute; top: 10px; z-index: 5; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 1px 5px rgba(0,0,0,.35); white-space: nowrap; }
+  .mp-fsback { left: 10px; background: var(--navy); color: #fff; border: 1px solid var(--navy); }
+  .mp-fsback:hover { background: #1f3a63; }
+  .mp-fslist { right: 10px; background: #fff; color: #1d2b44; border: 1px solid #c9d1de; max-width: min(320px, calc(100vw - 150px)); }
+  .mp-fslist span { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .mp-fslist em { font-style: normal; font-weight: 600; color: var(--muted); }
+  body.mp-list-open .mp-fslist { background: var(--navy); color: #fff; border-color: var(--navy); }
+  body.mp-list-open .mp-fslist em { color: #c9d6ea; }
+  /* đẩy nút zoom (trái) và bảng lớp QH (phải) xuống dưới 2 nút mới */
+  body.mp-fs-on .leaflet-top.leaflet-left, body.mp-fs-on .leaflet-top.leaflet-right { top: 46px; }
+  /* danh sách dự án: thành bảng sổ xuống dưới nút phía trên bên phải */
+  body.mp-fs-on .mp-side { display: none; position: fixed; top: 54px; right: 10px; z-index: 51; width: min(340px, calc(100vw - 20px)); height: auto; min-height: 0; max-height: calc(100vh - 110px); max-height: calc(100dvh - 110px); overflow: auto; border-radius: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.32); }
+  body.mp-fs-on.mp-list-open .mp-side { display: block; }
+  body.mp-fs-on .mp-side .mp-list, body.mp-fs-on .mp-side .mp-plist { max-height: none; overflow: visible; min-height: 0; }
 </style>
 </head>
 <body>
@@ -1651,7 +1675,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <div class="mp-stats" id="mpStats"></div>
         <p class="mp-statnote" id="mpStatNote"></p>
         <div class="mp-layout">
-          <div class="mp-box sat" id="mpBox"><div id="mpLeaf"></div></div>
+          <div class="mp-box sat" id="mpBox"><div id="mpLeaf"></div><button type="button" class="mp-fsui mp-fsback" id="mpFsBack" title="Thoát toàn màn hình (Esc)">← Quay lại</button><button type="button" class="mp-fsui mp-fslist" id="mpFsList" aria-expanded="false" title="Mở/ẩn danh sách dự án">☰ <span>Dự án</span></button></div>
           <aside class="mp-side" id="mpSide"></aside>
         </div>
       </section>
@@ -2501,6 +2525,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
 
   /* ---------- chuyển tab ---------- */
   function setMain(which, push) {
+    if (which !== 'legal') fsLeave(false);
     LS.main = which;
     document.querySelectorAll('.main-tab').forEach((b) => {
       const on = b.dataset.main === which;
@@ -2515,6 +2540,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
     window.scrollTo({ top: 0 });
   }
   function setSub(which, push) {
+    if (which !== 'map') fsLeave(false);
     LS.sub = which;
     document.querySelectorAll('#lgSubtabs .chip').forEach((b) => b.classList.toggle('active', b.dataset.sub === which));
     $('lgList').style.display = which === 'list' ? '' : 'none';
@@ -3058,6 +3084,8 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
     LM.gShapes = L.featureGroup().addTo(map);
     LM.gMarks = L.layerGroup().addTo(map);
     map.on('zoomend', layoutMarks);
+    addFsCtl(map);
+    map.on('click', () => { if (LM.fs) setFsList(false); });
     LM.built = true;
     provLabels();
   }
@@ -3306,6 +3334,57 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
       }
     });
   }
+
+  /* ---- Bản đồ toàn màn hình (27/10): nút ở góc dưới phải; khi bật có nút Quay lại (trên trái) và nút danh sách dự án (trên phải) ---- */
+  const FS_ICON = {
+    on: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+    off: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>'
+  };
+  function addFsCtl(map) {
+    const C = L.control({ position: 'bottomright' });
+    C.onAdd = function () {
+      const d = L.DomUtil.create('div', 'leaflet-bar mp-fsctl');
+      d.innerHTML = '<a href="#" role="button"></a>';
+      LM.fsA = d.firstChild;
+      L.DomEvent.disableClickPropagation(d);
+      LM.fsA.addEventListener('click', (e) => { e.preventDefault(); setFs(!LM.fs); });
+      updFsUi();
+      return d;
+    };
+    C.addTo(map);
+  }
+  function setFsList(open) {
+    document.body.classList.toggle('mp-list-open', !!open && !!LM.fs);
+    updFsUi();
+  }
+  function setFs(on) {
+    on = !!on; if (on === !!LM.fs) return;
+    LM.fs = on;
+    document.body.classList.toggle('mp-fs-on', on);
+    document.body.classList.remove('mp-list-open');
+    const de = document.documentElement;
+    try {
+      if (on && de.requestFullscreen && !document.fullscreenElement) de.requestFullscreen().catch(() => {});
+      if (!on && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+    } catch (e) { /* trình duyệt không hỗ trợ: vẫn phủ kín cửa sổ */ }
+    updFsUi();
+    [0, 120, 400].forEach((t) => setTimeout(() => { if (LM.map) LM.map.invalidateSize(); }, t));
+  }
+  function updFsUi() {
+    if (LM.fsA) { LM.fsA.innerHTML = LM.fs ? FS_ICON.off : FS_ICON.on; LM.fsA.title = LM.fs ? 'Thoát toàn màn hình (Esc)' : 'Xem toàn màn hình'; LM.fsA.setAttribute('aria-label', LM.fsA.title); }
+    const b = $('mpFsList'); if (!b) return;
+    const open = document.body.classList.contains('mp-list-open');
+    b.setAttribute('aria-expanded', open ? 'true' : 'false');
+    let t;
+    if (LS.mapSel) t = esc(LS.mapSel.title);
+    else { const n = LM.built ? mapRows().length : 0; t = 'Dự án trên bản đồ <em>· ' + n + '</em>'; }
+    b.innerHTML = (open ? '✕ ' : '☰ ') + '<span>' + t + '</span>';
+  }
+  function fsLeave(keepIfAway) {
+    if (!LM.fs) return;
+    if (keepIfAway && (document.hidden || !document.hasFocus())) return; // vừa mở link sang tab khác: giữ bản đồ phủ kín cửa sổ
+    setFs(false);
+  }
   function fitItems(items, maxZ) {
     if (!items.length) { LM.map.setView([16.2, 106.3], 5); return; }
     let b = null; items.forEach((it) => { b = b ? b.extend(it.bounds) : L.latLngBounds(it.bounds.getSouthWest(), it.bounds.getNorthEast()); });
@@ -3316,11 +3395,13 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
     LM.sel = i; LS.mapSel = { title: it.o.name, ids: [i] };
     restyle(); renderSide();
     fitItems([it], it.grp ? 17 : 15); layoutMarks();
+    if (LM.fs) { setFsList(false); return; }
     if (window.matchMedia('(max-width: 899px)').matches) $('mpSide').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
   function selectGroup(m) {
     LM.sel = -1; LS.mapSel = { title: m.length + ' dự án gần nhau', ids: m.map((it) => it.i) };
     restyle(); renderSide(); fitItems(m, 17);
+    if (LM.fs) { setFsList(true); return; }
     if (window.matchMedia('(max-width: 899px)').matches) $('mpSide').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
   function clearSel() { LM.sel = -1; LS.mapSel = null; restyle(); renderSide(); layoutMarks(); }
@@ -3349,7 +3430,8 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
       stlBtnsFor(o, o.dash) +
       (full ? '' : '<div class="lg-btns" style="margin-top:6px"><button class="drawing-btn" data-act="focus" data-i="' + i + '">🎯 Phóng tới đây</button></div>') + '</div>';
   }
-  function renderSide() {
+  function renderSide() { renderSide0(); updFsUi(); }
+  function renderSide0() {
     const side = $('mpSide');
     const ids = mapRows();
     if (LS.mapSel) {
@@ -3461,6 +3543,14 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
     [['mpFProv', 'prov'], ['mpFType', 'type'], ['mpFNhom', 'nhom']].forEach((p) => $(p[0]).addEventListener('change', (e) => { MF[p[1]] = e.target.value; mapFilterChanged(); }));
     document.querySelectorAll('#mpBase .chip').forEach((c) => c.addEventListener('click', () => setBase(c.dataset.base)));
     window.addEventListener('resize', () => { if (LM.map && LS.main === 'legal' && LS.sub === 'map') LM.map.invalidateSize(); });
+    $('mpFsBack').addEventListener('click', () => setFs(false));
+    $('mpFsList').addEventListener('click', () => setFsList(!document.body.classList.contains('mp-list-open')));
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || !LM.fs) return;
+      const md = $('indModal'); if (md && md.classList.contains('open')) return; // Esc đang dùng để đóng bảng chỉ tiêu
+      if (document.body.classList.contains('mp-list-open')) setFsList(false); else setFs(false);
+    }, true); // chạy trước lệnh đóng bảng chỉ tiêu để biết bảng đang mở hay không
+    document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && LM.fs) setTimeout(() => fsLeave(true), 250); });
     $('tlReset').addEventListener('click', () => { LS.tlSel = null; renderTimeline(); });
     $('refreshBtn').addEventListener('click', () => { if (loaded) loadLegal(true); });
     setInterval(() => { if (loaded && LS.main === 'legal' && !document.hidden) loadLegal(false); }, 300000);
