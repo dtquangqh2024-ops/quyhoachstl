@@ -1539,16 +1539,41 @@ svg.leaflet-image-layer.leaflet-interactive path {
   body.mp-fs-on .mp-side { display: none; position: fixed; top: 54px; right: 10px; z-index: 51; width: min(340px, calc(100vw - 20px)); height: auto; min-height: 0; max-height: calc(100vh - 110px); max-height: calc(100dvh - 110px); overflow: auto; border-radius: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.32); }
   body.mp-fs-on.mp-list-open .mp-side { display: block; }
   body.mp-fs-on .mp-side .mp-list, body.mp-fs-on .mp-side .mp-plist { max-height: none; overflow: visible; min-height: 0; }
+
+  /* ===== Bảng lớp QH thu thành nút (27/10, lần 2) ===== */
+  .mp-sdd-tg { display: flex; align-items: center; gap: 6px; width: 100%; border: 0; background: none; font: inherit; font-size: 12.5px; font-weight: 700; color: #1f2a3d; cursor: pointer; padding: 0; text-align: left; white-space: nowrap; }
+  .mp-sdd-tg span { flex: 1 1 auto; }
+  .mp-sdd-tg em { font-style: normal; font-size: 10.5px; font-weight: 700; min-width: 16px; text-align: center; line-height: 16px; padding: 0 4px; border-radius: 8px; background: var(--navy); color: #fff; }
+  .mp-sdd-tg em.z { background: #c5ccd8; }
+  .mp-sdd-tg i { font-style: normal; font-size: 11px; color: var(--muted); }
+  .mp-sdd-in { margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--line); }
+  .mp-sdd.cl { width: auto; padding: 0; }
+  .mp-sdd.cl .mp-sdd-tg { height: 36px; padding: 0 12px; }
+  .mp-sdd.cl .mp-sdd-in { display: none; }
+
+  /* ===== Đầu trang trên điện thoại: 2 dòng gọn (27/10) ===== */
+  @media (max-width: 640px) {
+    header.top { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px; row-gap: 7px; align-items: center; padding-top: 12px; padding-bottom: 12px; }
+    header.top .header-textblock { display: contents; }
+    header.top h1 { grid-column: 1; grid-row: 1; font-size: 19px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    header.top h1 .t-brand { display: none; }
+    .logo-col { grid-column: 2; grid-row: 1; }
+    .logo-col .logo-img, .logo-col .logo-img.logo-white { height: 24px; }
+    .logo-cap { display: none; }
+    header.top .meta { grid-column: 1 / -1; grid-row: 2; font-size: 12px; gap: 6px 8px; }
+    header.top .meta .lu-l, header.top .meta .lu-d, .refresh-btn .rf-l { display: none; }
+    header.top .refresh-btn { padding: 4px 9px; font-size: 11.5px; }
+  }
 </style>
 </head>
 <body>
 
 <header class="top">
   <div class="header-textblock">
-    <h1>Báo cáo Dự án Quy hoạch Stellar</h1>
+    <h1>Báo cáo Dự án Quy hoạch<span class="t-brand"> Stellar</span></h1>
     <div class="meta">
-      <span>Làm mới lúc <b id="lastUpdated">—</b></span>
-      <button class="refresh-btn" id="refreshBtn">↻ Làm mới ngay</button>
+      <span><span class="lu-l">Làm mới lúc </span><b id="lastUpdated">—</b></span>
+      <button class="refresh-btn" id="refreshBtn">↻ Làm mới<span class="rf-l"> ngay</span></button>
       <span id="authBox" class="auth-box"></span>
     </div>
   </div>
@@ -2229,7 +2254,7 @@ async function loadData(isManual) {
     DATA = jsonToData(json);
     loadingEl.style.display = 'none';
     errorEl.style.display = 'none';
-    document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN');
+    document.getElementById('lastUpdated').innerHTML = new Date().toLocaleTimeString('vi-VN') + '<span class="lu-d"> ' + new Date().toLocaleDateString('vi-VN') + '</span>';
     renderFilters();
     renderGrid();
     if (typeof legalAfterMain === 'function') legalAfterMain();
@@ -2238,7 +2263,7 @@ async function loadData(isManual) {
     errorEl.style.display = 'block';
     errorEl.textContent = 'Không tải được dữ liệu (' + err.message + '). Thử bấm Làm mới, hoặc kiểm tra lại kết nối mạng.';
   } finally {
-    if (isManual) { btn.disabled = false; btn.textContent = '↻ Làm mới ngay'; }
+    if (isManual) { btn.disabled = false; btn.innerHTML = '↻ Làm mới<span class="rf-l"> ngay</span>'; }
   }
 }
 
@@ -3085,7 +3110,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
     LM.gMarks = L.layerGroup().addTo(map);
     map.on('zoomend', layoutMarks);
     addFsCtl(map);
-    map.on('click', () => { if (LM.fs) setFsList(false); });
+    map.on('click', () => { if (LM.fs) setFsList(false); if (LM.sddOpen && window.matchMedia('(max-width: 899px)').matches) LM.sddOpen(false, false); });
     LM.built = true;
     provLabels();
   }
@@ -3171,14 +3196,31 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
         const items = SDD_LEG.filter((x) => x.g === g); if (!items.length) return;
         groups += '<div class="gh">' + SDD_GRP[g] + '</div>' + items.map((x) => '<label class="li"><input type="checkbox" data-l="' + esc(x.l) + '"' + (offL.has(x.l) ? '' : ' checked') + '><i style="background:' + x.c + '"></i>' + esc(x.l) + '</label>').join('');
       });
-      d.innerHTML = '<label class="mp-sdd-t"><input type="checkbox" id="sddOn"' + (on ? ' checked' : '') + '> QH sử dụng đất HN</label>' +
+      d.innerHTML = '<button type="button" class="mp-sdd-tg" title="Mở/thu bảng lớp quy hoạch"><span>🗺 Lớp quy hoạch HN</span><em></em><i></i></button><div class="mp-sdd-in">' +
+        '<label class="mp-sdd-t"><input type="checkbox" id="sddOn"' + (on ? ' checked' : '') + '> QH sử dụng đất HN</label>' +
         '<div class="mp-sdd-b"><div class="mp-sdd-r"><span>Độ đậm</span><input type="range" id="sddOp" min="10" max="100" step="5" value="' + op + '"><b id="sddOpV">' + op + '%</b></div>' +
         '<div class="mp-sdd-ph">' + Object.keys(SDD_PH).map((k) => '<button type="button" data-p="' + k + '" class="' + (offP.has(k) ? '' : 'on') + '" title="' + SDD_PH[k] + '">' + k + '</button>').join('') + '</div>' +
         '<details class="mp-sdd-lg"><summary>Chú giải, lọc loại đất</summary><div class="mp-sdd-tools"><button type="button" data-all="1">Hiện hết</button><button type="button" data-all="0">Tắt hết</button></div>' + groups + '</details>' +
         '</div>' +
         '<div class="mp-gt"><label class="mp-sdd-t"><input type="checkbox" id="gtDs"' + (onDS ? ' checked' : '') + '> <i class="ln ds"></i>Đường sắt đô thị</label>' +
-        '<label class="mp-sdd-t"><input type="checkbox" id="gtGt"' + (onGT ? ' checked' : '') + '> <i class="ln gt"></i>Giao thông đô thị</label></div>';
+        '<label class="mp-sdd-t"><input type="checkbox" id="gtGt"' + (onGT ? ' checked' : '') + '> <i class="ln gt"></i>Giao thông đô thị</label></div></div>';
       L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
+      /* thu/mở: điện thoại mặc định thu gọn, máy tính mặc định mở; nhớ lựa chọn trên từng máy */
+      const tg = d.querySelector('.mp-sdd-tg');
+      const updTg = () => {
+        const op_ = !d.classList.contains('cl'), n = (on ? 1 : 0) + (onDS ? 1 : 0) + (onGT ? 1 : 0);
+        tg.setAttribute('aria-expanded', op_ ? 'true' : 'false');
+        tg.querySelector('i').textContent = op_ ? '▴' : '▾';
+        const em = tg.querySelector('em'); em.textContent = n; em.className = n ? '' : 'z'; em.title = n + ' lớp đang bật';
+      };
+      LM.sddOpen = (v, save) => { d.classList.toggle('cl', !v); if (save) lsSet('sddOpen', v ? '1' : '0'); updTg(); };
+      LM.sddOpen(lsGet('sddOpen', window.matchMedia('(max-width: 899px)').matches ? '0' : '1') === '1', false);
+      tg.addEventListener('click', () => {
+        const v = d.classList.contains('cl');
+        LM.sddOpen(v, true);
+        if (v && LM.fs) setFsList(false);
+      });
+      d.addEventListener('change', updTg);
       d.querySelector('#gtDs').addEventListener('change', (e) => { onDS = e.target.checked; gtRefresh(); });
       d.querySelector('#gtGt').addEventListener('change', (e) => { onGT = e.target.checked; gtRefresh(); });
       d.querySelector('#sddOn').addEventListener('change', (e) => { on = e.target.checked; lsSet('sddOn', on ? '1' : '0'); if (on) LM.sdd.addTo(map); else { map.removeLayer(LM.sdd); map.closePopup(); } d.classList.toggle('off', !on); });
@@ -3355,6 +3397,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
   }
   function setFsList(open) {
     document.body.classList.toggle('mp-list-open', !!open && !!LM.fs);
+    if (open && LM.sddOpen && window.matchMedia('(max-width: 899px)').matches) LM.sddOpen(false, false);
     updFsUi();
   }
   function setFs(on) {
