@@ -1425,6 +1425,13 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-sdd-pop .k { color: #7b8799; font-size: 11px; }
   .mp-sdd-n { margin-top: 5px; font-size: 10.5px; color: var(--muted); line-height: 1.35; }
   .mp-sdd.off .mp-sdd-b { display: none; }
+  .mp-dn { border-top: 1px solid var(--line); margin-top: 7px; padding-top: 6px; }
+  .mp-sdd .mp-dn.off .mp-sdd-b { display: none; }
+  .mp-sdd.off .mp-dn .mp-sdd-b { display: block; }
+  .mp-sdd.off .mp-dn.off .mp-sdd-b { display: none; }
+  .mp-dn-go { margin-top: 6px; }
+  .mp-dn-go button { width: 100%; font: inherit; font-size: 11px; font-weight: 600; padding: 3px 4px; border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--navy-2); cursor: pointer; }
+  .mp-sdd-in { max-height: calc(100vh - 170px); overflow: auto; }
 
   /* ===== Bảo mật: ô khóa, đăng nhập, thanh đếm ngược ===== */
   .auth-box { display: inline-flex; align-items: center; gap: 8px; }
@@ -3153,6 +3160,11 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
   const SDD_LEG = [{"l": "Đất đơn vị ở", "g": "DD", "c": "#ff7f00"}, {"l": "Đất cây xanh công cộng đô thị", "g": "DD", "c": "#66cc00"}, {"l": "Đất hỗn hợp", "g": "DD", "c": "#cc3300"}, {"l": "Đất dân cư nông thôn, làng xóm", "g": "DD", "c": "#7f7f3f"}, {"l": "Đất dịch vụ – công cộng đô thị", "g": "DD", "c": "#ff0000"}, {"l": "Đất đơn vị ở (nội đô)", "g": "DD", "c": "#ffbf00"}, {"l": "Đất hạ tầng khác đô thị", "g": "DD", "c": "#724c99"}, {"l": "Đất trường THPT", "g": "DD", "c": "#992600"}, {"l": "Đề xuất phát triển đô thị", "g": "DD", "c": "#ff7f00"}, {"l": "Đất cơ quan đô thị", "g": "DD", "c": "#994c00"}, {"l": "Trung tâm cụm xã", "g": "DD", "c": "#ffbf7f"}, {"l": "Đất công nghệ cao", "g": "DD", "c": "#cc6666"}, {"l": "Khu phố cũ", "g": "DD", "c": "#cc6600"}, {"l": "Đất hạ tầng kỹ thuật, TOD", "g": "DD", "c": "#994c72"}, {"l": "Đất công nghệ số tập trung", "g": "DD", "c": "#007f7f"}, {"l": "Đề xuất cải tạo, tái thiết", "g": "DD", "c": "#00ffff"}, {"l": "Khu phố cổ", "g": "DD", "c": "#7f3f00"}, {"l": "Di tích, tôn giáo", "g": "NDD", "c": "#7f0000"}, {"l": "Cây xanh sinh thái", "g": "NDD", "c": "#33cc00"}, {"l": "Cây xanh chuyên dụng", "g": "NDD", "c": "#007f5f"}, {"l": "Đất quốc phòng", "g": "NDD", "c": "#394c26"}, {"l": "Đất du lịch", "g": "NDD", "c": "#00ffff"}, {"l": "Cụm công nghiệp", "g": "NDD", "c": "#7f7fff"}, {"l": "Cây xanh sử dụng hạn chế", "g": "NDD", "c": "#009900"}, {"l": "Đất đào tạo", "g": "NDD", "c": "#007299"}, {"l": "Đất an ninh", "g": "NDD", "c": "#729900"}, {"l": "Hạ tầng đầu mối, đối ngoại", "g": "NDD", "c": "#39264c"}, {"l": "Đất y tế", "g": "NDD", "c": "#ff00bf"}, {"l": "Nghĩa trang", "g": "NDD", "c": "#3fff00"}, {"l": "Đất cơ quan", "g": "NDD", "c": "#7f5f00"}, {"l": "Khu công nghiệp", "g": "NDD", "c": "#6600cc"}, {"l": "Văn hóa, thể dục thể thao", "g": "NDD", "c": "#009900"}, {"l": "Tổ hợp đào tạo – y tế – văn hóa – TDTT", "g": "NDD", "c": "#df7fff"}, {"l": "Logistics, kho tàng", "g": "NDD", "c": "#6699cc"}, {"l": "Sông, suối", "g": "NNK", "c": "#0066cc"}, {"l": "Hồ, mặt nước", "g": "NNK", "c": "#004c99"}, {"l": "Đất nông nghiệp", "g": "NNK", "c": "#00ff00"}, {"l": "Rừng sản xuất", "g": "NNK", "c": "#3f7f4f"}, {"l": "Rừng đặc dụng", "g": "NNK", "c": "#00394c"}, {"l": "Rừng phòng hộ", "g": "NNK", "c": "#264c42"}, {"l": "Đất dự trữ phát triển", "g": "NNK", "c": "#66cccc"}, {"l": "Nuôi trồng thủy sản", "g": "NNK", "c": "#00cc66"}, {"l": "Phân kỳ", "g": "KH", "c": "#ff7f00"}];
   const SDD_GRP = { DD: 'Đất dân dụng', NDD: 'Đất ngoài dân dụng', NNK: 'Đất nông nghiệp và khác', KH: 'Khác', KHAC: 'Khác' };
   const SDD_PH = { HT: 'Hiện trạng (1_HT)', QHDD: 'Quy hoạch (2_QHDD)', QHDH: 'Quy hoạch (3_QHDH)' };
+  /* ---- Lớp QHC Đà Nẵng: qhdn.pmtiles (từ CAD xr_10ksdd.dxf, VN-2000 TM-3 107°45'), cùng cấu trúc thuộc tính với lớp Hà Nội ---- */
+  const DN_URL = 'qhdn.pmtiles';
+  const DN_BOUNDS = [[15.29, 107.80], [16.24, 108.75]];
+  const DN_LEG = [{"l": "Đất đơn vị ở", "g": "DD", "c": "#ff7f00"}, {"l": "Đất cây xanh công cộng đô thị", "g": "DD", "c": "#52a500"}, {"l": "Đất hỗn hợp", "g": "DD", "c": "#a52900"}, {"l": "Đất dịch vụ – công cộng đô thị", "g": "DD", "c": "#ff0000"}, {"l": "Đất hạ tầng khác đô thị", "g": "DD", "c": "#5f3f7f"}, {"l": "Đất dự trữ phát triển", "g": "DD", "c": "#004c39"}, {"l": "Đất cơ quan đô thị", "g": "DD", "c": "#7f3f00"}, {"l": "Cây xanh chuyên dụng", "g": "NDD", "c": "#004c39"}, {"l": "Đất du lịch", "g": "NDD", "c": "#ff00ff"}, {"l": "Đất công nghiệp", "g": "NDD", "c": "#5200a5"}, {"l": "Đất quốc phòng", "g": "NDD", "c": "#1c2613"}, {"l": "Di tích, tôn giáo", "g": "NDD", "c": "#4c0000"}, {"l": "Cây xanh sử dụng hạn chế", "g": "NDD", "c": "#007f00"}, {"l": "Nghĩa trang", "g": "NDD", "c": "#656565"}, {"l": "Đất đào tạo", "g": "NDD", "c": "#005f7f"}, {"l": "Đất dân cư nông thôn, làng xóm", "g": "NDD", "c": "#4c4c26"}, {"l": "Văn hóa, thể dục thể thao", "g": "NDD", "c": "#007f00"}, {"l": "Đất an ninh", "g": "NDD", "c": "#5f7f00"}, {"l": "Đất y tế", "g": "NDD", "c": "#ff00bf"}, {"l": "Đất công nghệ cao", "g": "NDD", "c": "#7c00a5"}, {"l": "Hạ tầng đầu mối, đối ngoại", "g": "NDD", "c": "#1c1358"}, {"l": "Đất cơ quan", "g": "NDD", "c": "#4c3900"}, {"l": "Đất nông nghiệp", "g": "NNK", "c": "#00ff00"}, {"l": "Sông, suối", "g": "NNK", "c": "#0052a5"}, {"l": "Rừng sản xuất", "g": "NNK", "c": "#264c2f"}, {"l": "Rừng phòng hộ", "g": "NNK", "c": "#135858"}, {"l": "Hồ, mặt nước", "g": "NNK", "c": "#003f7f"}, {"l": "Nuôi trồng thủy sản", "g": "NNK", "c": "#007fff"}, {"l": "Rừng đặc dụng", "g": "NNK", "c": "#001c26"}, {"l": "Đất chưa sử dụng", "g": "NNK", "c": "#c0c0c0"}];
+  const DN_PH = { HT: 'Hiện trạng (HT)', QHDD: 'Quy hoạch (QHDD)', QHDH: 'Quy hoạch (QHDH)', QHDH2050: 'Quy hoạch 2050 (QHDH2050)' };
   const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } };
   const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
   function buildSdd(map) {
@@ -3172,6 +3184,22 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
       }]
     });
     if (on) LM.sdd.addTo(map);
+    /* lớp QHC Đà Nẵng: bật/tắt, độ đậm, giai đoạn, loại đất riêng */
+    let dnOn = lsGet('dnOn', '1') === '1', dnOp = +lsGet('dnOp', '60') || 60;
+    const dnOffL = new Set(JSON.parse(lsGet('dnOffL', '[]') || '[]'));
+    const dnOffP = new Set(JSON.parse(lsGet('dnOffP', '[]') || '[]'));
+    const dnShow = (p) => !dnOffL.has(p.l) && !dnOffP.has(p.p);
+    LM.dn = protomapsL.leafletLayer({
+      url: DN_URL, pane: 'sddPane', maxDataZoom: 15, minZoom: 9, bounds: DN_BOUNDS, opacity: dnOp / 100,
+      attribution: 'QHC Đà Nẵng (tham khảo)',
+      paintRules: [{
+        dataLayer: 'sdd',
+        filter: (z, f) => dnShow(f.props),
+        symbolizer: new protomapsL.PolygonSymbolizer({ fill: (z, f) => f.props.c, opacity: 1, stroke: '#ffffff', width: (z) => (z >= 15 ? 0.6 : 0) })
+      }]
+    });
+    if (dnOn) LM.dn.addTo(map);
+    const dnRefresh = () => { lsSet('dnOffL', JSON.stringify([...dnOffL])); lsSet('dnOffP', JSON.stringify([...dnOffP])); if (LM.dn.rerenderTiles) LM.dn.rerenderTiles(); };
     /* lớp đường sắt đô thị + giao thông (qhgt.pmtiles, QHC tầm nhìn 100 năm) */
     let onDS = lsGet('gtDs', '0') === '1', onGT = lsGet('gtGt', '0') === '1';
     map.createPane('gtPane'); map.getPane('gtPane').style.zIndex = 270;
@@ -3208,6 +3236,18 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
           return;
         }
       }
+      if (dnOn && map.hasLayer(LM.dn) && L.latLngBounds(DN_BOUNDS).contains(e.latlng)) {
+        let dh = null;
+        try { LM.dn.queryTileFeaturesDebug(e.latlng.lng, e.latlng.lat).forEach((arr) => arr.forEach((x) => { if (x.layerName === 'sdd' && dnShow(x.feature.props)) dh = x.feature.props; })); } catch (err) { dh = null; }
+        if (dh) {
+          L.popup({ className: 'mp-sdd-pop', maxWidth: 260 }).setLatLng(e.latlng).setContent(
+            '<b><i style="background:' + esc(dh.c) + '"></i>' + esc(dh.l) + '</b>' +
+            '<div>' + esc(SDD_GRP[dh.g] || '') + ' · ' + esc(DN_PH[dh.p] || 'Khác') + ' · QHC Đà Nẵng</div>' +
+            (dh.ha ? '<div>Diện tích ô vẽ: ' + String(dh.ha).replace('.', ',') + ' ha</div>' : '') +
+            '<div class="k">Layer CAD: ' + esc(dh.cad) + '</div>').openOn(map);
+          return;
+        }
+      }
       if (!on || !map.hasLayer(LM.sdd)) return;
       let hit = null;
       try {
@@ -3229,19 +3269,29 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
         const items = SDD_LEG.filter((x) => x.g === g); if (!items.length) return;
         groups += '<div class="gh">' + SDD_GRP[g] + '</div>' + items.map((x) => '<label class="li"><input type="checkbox" data-l="' + esc(x.l) + '"' + (offL.has(x.l) ? '' : ' checked') + '><i style="background:' + x.c + '"></i>' + esc(x.l) + '</label>').join('');
       });
-      d.innerHTML = '<button type="button" class="mp-sdd-tg" title="Mở/thu bảng lớp quy hoạch"><span>🗺 Lớp quy hoạch HN</span><em></em><i></i></button><div class="mp-sdd-in">' +
+      let dnGroups = '';
+      ['DD', 'NDD', 'NNK'].forEach((g) => {
+        const items = DN_LEG.filter((x) => x.g === g); if (!items.length) return;
+        dnGroups += '<div class="gh">' + SDD_GRP[g] + '</div>' + items.map((x) => '<label class="li"><input type="checkbox" data-dl="' + esc(x.l) + '"' + (dnOffL.has(x.l) ? '' : ' checked') + '><i style="background:' + x.c + '"></i>' + esc(x.l) + '</label>').join('');
+      });
+      const dnHtml = '<div class="mp-dn' + (dnOn ? '' : ' off') + '"><label class="mp-sdd-t"><input type="checkbox" id="dnOn"' + (dnOn ? ' checked' : '') + '> QHC Đà Nẵng</label>' +
+        '<div class="mp-sdd-b"><div class="mp-sdd-r"><span>Độ đậm</span><input type="range" id="dnOp" min="10" max="100" step="5" value="' + dnOp + '"><b id="dnOpV">' + dnOp + '%</b></div>' +
+        '<div class="mp-sdd-ph">' + Object.keys(DN_PH).map((k) => '<button type="button" data-dp="' + k + '" class="' + (dnOffP.has(k) ? '' : 'on') + '" title="' + DN_PH[k] + '">' + (k === 'QHDH2050' ? '2050' : k) + '</button>').join('') + '</div>' +
+        '<details class="mp-sdd-lg"><summary>Chú giải, lọc loại đất</summary><div class="mp-sdd-tools"><button type="button" data-dall="1">Hiện hết</button><button type="button" data-dall="0">Tắt hết</button></div>' + dnGroups + '</details>' +
+        '<div class="mp-dn-go"><button type="button" id="dnGo">Xem Đà Nẵng</button></div></div></div>';
+      d.innerHTML = '<button type="button" class="mp-sdd-tg" title="Mở/thu bảng lớp quy hoạch"><span>🗺 Lớp quy hoạch</span><em></em><i></i></button><div class="mp-sdd-in">' +
         '<label class="mp-sdd-t"><input type="checkbox" id="sddOn"' + (on ? ' checked' : '') + '> QH sử dụng đất HN</label>' +
         '<div class="mp-sdd-b"><div class="mp-sdd-r"><span>Độ đậm</span><input type="range" id="sddOp" min="10" max="100" step="5" value="' + op + '"><b id="sddOpV">' + op + '%</b></div>' +
         '<div class="mp-sdd-ph">' + Object.keys(SDD_PH).map((k) => '<button type="button" data-p="' + k + '" class="' + (offP.has(k) ? '' : 'on') + '" title="' + SDD_PH[k] + '">' + k + '</button>').join('') + '</div>' +
         '<details class="mp-sdd-lg"><summary>Chú giải, lọc loại đất</summary><div class="mp-sdd-tools"><button type="button" data-all="1">Hiện hết</button><button type="button" data-all="0">Tắt hết</button></div>' + groups + '</details>' +
         '</div>' +
         '<div class="mp-gt"><label class="mp-sdd-t"><input type="checkbox" id="gtDs"' + (onDS ? ' checked' : '') + '> <i class="ln ds"></i>Đường sắt đô thị</label>' +
-        '<label class="mp-sdd-t"><input type="checkbox" id="gtGt"' + (onGT ? ' checked' : '') + '> <i class="ln gt"></i>Giao thông đô thị</label></div></div>';
+        '<label class="mp-sdd-t"><input type="checkbox" id="gtGt"' + (onGT ? ' checked' : '') + '> <i class="ln gt"></i>Giao thông đô thị</label></div>' + dnHtml + '</div>';
       L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
       /* thu/mở: điện thoại mặc định thu gọn, máy tính mặc định mở; nhớ lựa chọn trên từng máy */
       const tg = d.querySelector('.mp-sdd-tg');
       const updTg = () => {
-        const op_ = !d.classList.contains('cl'), n = (on ? 1 : 0) + (onDS ? 1 : 0) + (onGT ? 1 : 0);
+        const op_ = !d.classList.contains('cl'), n = (on ? 1 : 0) + (onDS ? 1 : 0) + (onGT ? 1 : 0) + (dnOn ? 1 : 0);
         tg.setAttribute('aria-expanded', op_ ? 'true' : 'false');
         tg.querySelector('i').textContent = op_ ? '▴' : '▾';
         const em = tg.querySelector('em'); em.textContent = n; em.className = n ? '' : 'z'; em.title = n + ' lớp đang bật';
@@ -3258,14 +3308,25 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
       d.querySelector('#gtGt').addEventListener('change', (e) => { onGT = e.target.checked; gtRefresh(); });
       d.querySelector('#sddOn').addEventListener('change', (e) => { on = e.target.checked; lsSet('sddOn', on ? '1' : '0'); if (on) LM.sdd.addTo(map); else { map.removeLayer(LM.sdd); map.closePopup(); } d.classList.toggle('off', !on); });
       d.querySelector('#sddOp').addEventListener('input', (e) => { op = +e.target.value; LM.sdd.setOpacity(op / 100); d.querySelector('#sddOpV').textContent = op + '%'; lsSet('sddOp', String(op)); });
-      d.querySelectorAll('.mp-sdd-ph button').forEach((b) => b.addEventListener('click', () => { const k = b.dataset.p; if (offP.has(k)) offP.delete(k); else offP.add(k); b.classList.toggle('on', !offP.has(k)); refresh(); }));
+      d.querySelectorAll('.mp-sdd-ph button[data-p]').forEach((b) => b.addEventListener('click', () => { const k = b.dataset.p; if (offP.has(k)) offP.delete(k); else offP.add(k); b.classList.toggle('on', !offP.has(k)); refresh(); }));
       d.querySelectorAll('.mp-sdd-lg input[data-l]').forEach((c) => c.addEventListener('change', () => { if (c.checked) offL.delete(c.dataset.l); else offL.add(c.dataset.l); refresh(); }));
-      d.querySelectorAll('.mp-sdd-tools button').forEach((b) => b.addEventListener('click', () => {
+      d.querySelectorAll('.mp-sdd-tools button[data-all]').forEach((b) => b.addEventListener('click', () => {
         const all = b.dataset.all === '1';
         d.querySelectorAll('.mp-sdd-lg input[data-l]').forEach((c) => { c.checked = all; if (all) offL.delete(c.dataset.l); else offL.add(c.dataset.l); });
         refresh();
       }));
       d.classList.toggle('off', !on);
+      const dnBox = d.querySelector('.mp-dn');
+      d.querySelector('#dnOn').addEventListener('change', (e) => { dnOn = e.target.checked; lsSet('dnOn', dnOn ? '1' : '0'); if (dnOn) LM.dn.addTo(map); else { map.removeLayer(LM.dn); map.closePopup(); } dnBox.classList.toggle('off', !dnOn); });
+      d.querySelector('#dnOp').addEventListener('input', (e) => { dnOp = +e.target.value; LM.dn.setOpacity(dnOp / 100); d.querySelector('#dnOpV').textContent = dnOp + '%'; lsSet('dnOp', String(dnOp)); });
+      d.querySelectorAll('.mp-sdd-ph button[data-dp]').forEach((b) => b.addEventListener('click', () => { const k = b.dataset.dp; if (dnOffP.has(k)) dnOffP.delete(k); else dnOffP.add(k); b.classList.toggle('on', !dnOffP.has(k)); dnRefresh(); }));
+      d.querySelectorAll('.mp-sdd-lg input[data-dl]').forEach((c) => c.addEventListener('change', () => { if (c.checked) dnOffL.delete(c.dataset.dl); else dnOffL.add(c.dataset.dl); dnRefresh(); }));
+      d.querySelectorAll('.mp-sdd-tools button[data-dall]').forEach((b) => b.addEventListener('click', () => {
+        const all = b.dataset.dall === '1';
+        d.querySelectorAll('.mp-sdd-lg input[data-dl]').forEach((c) => { c.checked = all; if (all) dnOffL.delete(c.dataset.dl); else dnOffL.add(c.dataset.dl); });
+        dnRefresh();
+      }));
+      d.querySelector('#dnGo').addEventListener('click', () => { map.fitBounds(DN_BOUNDS); if (window.matchMedia('(max-width: 899px)').matches) LM.sddOpen(false, false); });
       return d;
     };
     C.addTo(map);
