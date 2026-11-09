@@ -1545,8 +1545,6 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-fsui { position: absolute; top: 10px; z-index: 5; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 1px 5px rgba(0,0,0,.35); white-space: nowrap; }
   .mp-fsback { left: 10px; background: var(--navy); color: #fff; border: 1px solid var(--navy); }
   .mp-fsback:hover { background: #1f3a63; }
-  .mp-fsbase { left: 10px; top: 134px; height: 36px; width: 36px; padding: 0; justify-content: center; background: #fff; color: #1d2b44; border: 1px solid #c9d1de; font-size: 17px; }
-  body.mp-fs-on .mp-fsbase { top: calc(134px + var(--sat)); left: calc(10px + var(--sal)); }
   .mp-fslist { right: 10px; background: #fff; color: #1d2b44; border: 1px solid #c9d1de; max-width: min(320px, calc(100vw - 150px)); }
   .mp-fslist span { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .mp-fslist em { font-style: normal; font-weight: 600; color: var(--muted); }
@@ -1566,6 +1564,11 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-sdd-tg em.z { background: #c5ccd8; }
   .mp-sdd-tg i { font-style: normal; font-size: 11px; color: var(--muted); }
   .mp-sdd-in { margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--line); }
+  .mp-sdd-bs { display: none; gap: 3px; padding: 7px 8px 0; }
+  body.mp-fs-on .mp-sdd-bs { display: flex; }
+  .mp-sdd-bs button { flex: 1; font: inherit; font-size: 11.5px; font-weight: 600; padding: 4px 8px; border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--muted); cursor: pointer; white-space: nowrap; }
+  .mp-sdd-bs button.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .mp-sdd.cl .mp-sdd-bs { padding-bottom: 7px; }
   .mp-sdd.cl { width: auto; padding: 0; }
   .mp-sdd.cl .mp-sdd-tg { height: 36px; padding: 0 12px; }
   .mp-sdd.cl .mp-sdd-in { display: none; }
@@ -1809,7 +1812,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <div class="mp-stats" id="mpStats"></div>
         <p class="mp-statnote" id="mpStatNote"></p>
         <div class="mp-layout">
-          <div class="mp-box sat" id="mpBox"><div id="mpLeaf"></div><button type="button" class="mp-fsui mp-fsbase" id="mpFsBase" title="Đổi nền bản đồ: vệ tinh / bản đồ đường">🗺</button><button type="button" class="mp-fsui mp-fsback" id="mpFsBack" title="Thoát toàn màn hình (Esc)">← Quay lại</button><button type="button" class="mp-fsui mp-fslist" id="mpFsList" aria-expanded="false" title="Mở/ẩn danh sách dự án">☰ <span>Dự án</span></button></div>
+          <div class="mp-box sat" id="mpBox"><div id="mpLeaf"></div><button type="button" class="mp-fsui mp-fsback" id="mpFsBack" title="Thoát toàn màn hình (Esc)">← Quay lại</button><button type="button" class="mp-fsui mp-fslist" id="mpFsList" aria-expanded="false" title="Mở/ẩn danh sách dự án">☰ <span>Dự án</span></button></div>
           <aside class="mp-side" id="mpSide"></aside>
         </div>
       </section>
@@ -3682,7 +3685,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
         '<div class="mp-sdd-ph">' + Object.keys(DN_PH).map((k) => '<button type="button" data-dp="' + k + '" class="' + (dnOffP.has(k) ? '' : 'on') + '" title="' + DN_PH[k] + '">' + (k === 'QHDH2050' ? '2050' : k) + '</button>').join('') + '</div>' +
         '<details class="mp-sdd-lg"><summary>Chú giải, lọc loại đất</summary><div class="mp-sdd-tools"><button type="button" data-dall="1">Hiện hết</button><button type="button" data-dall="0">Tắt hết</button></div>' + dnGroups + '</details>' +
         '<div class="mp-dn-go"><button type="button" id="dnGo">Xem Đà Nẵng</button></div></div></div>';
-      d.innerHTML = '<button type="button" class="mp-sdd-tg" title="Mở/thu bảng lớp quy hoạch"><span>🗺 Lớp quy hoạch</span><em></em><i></i></button><div class="mp-sdd-in">' +
+      d.innerHTML = '<button type="button" class="mp-sdd-tg" title="Mở/thu bảng lớp quy hoạch"><span>🗺 Lớp quy hoạch</span><em></em><i></i></button><div class="mp-sdd-bs"><button type="button" data-fb="osm">🗺 Bản đồ</button><button type="button" data-fb="sat">🛰 Vệ tinh</button></div><div class="mp-sdd-in">' +
         '<label class="mp-sdd-t"><input type="checkbox" id="sddOn"' + (on ? ' checked' : '') + '> QH sử dụng đất HN</label>' +
         '<div class="mp-sdd-b"><div class="mp-sdd-r"><span>Độ đậm</span><input type="range" id="sddOp" min="10" max="100" step="5" value="' + op + '"><b id="sddOpV">' + op + '%</b></div>' +
         '<div class="mp-sdd-ph">' + Object.keys(SDD_PH).map((k) => '<button type="button" data-p="' + k + '" class="' + (offP.has(k) ? '' : 'on') + '" title="' + SDD_PH[k] + '">' + k + '</button>').join('') + '</div>' +
@@ -3692,6 +3695,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
         '<label class="mp-sdd-t"><input type="checkbox" id="gtGt"' + (onGT ? ' checked' : '') + '> <i class="ln gt"></i>Giao thông đô thị</label></div>' + dnHtml + '</div>';
       L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
       /* thu/mở: điện thoại mặc định thu gọn, máy tính mặc định mở; nhớ lựa chọn trên từng máy */
+      d.querySelectorAll('.mp-sdd-bs button').forEach((b) => { b.classList.toggle('on', b.dataset.fb === LM.base); b.addEventListener('click', () => setBase(b.dataset.fb)); });
       const tg = d.querySelector('.mp-sdd-tg');
       const updTg = () => {
         const op_ = !d.classList.contains('cl'), n = (on ? 1 : 0) + (onDS ? 1 : 0) + (onGT ? 1 : 0) + (dnOn ? 1 : 0);
@@ -3781,7 +3785,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
     const bx = $('mpBox'); if (bx) bx.classList.toggle('sat', b === 'sat');
     if (LM.built) MAP.prov.forEach((p) => { if (p._poly) p._poly.setStyle(provStyle()); });
     document.querySelectorAll('#mpBase .chip').forEach((c) => c.classList.toggle('active', c.dataset.base === b));
-    { const fb = document.getElementById('mpFsBase'); if (fb) { fb.textContent = b === 'sat' ? '🗺' : '🛰'; fb.title = b === 'sat' ? 'Chuyển sang bản đồ đường' : 'Chuyển sang ảnh vệ tinh'; } }
+    document.querySelectorAll('.mp-sdd-bs button').forEach((c) => c.classList.toggle('on', c.dataset.fb === b));
     if (!LM.built) return;
     Object.keys(LM.tiles).forEach((k) => { if (k !== b && LM.map.hasLayer(LM.tiles[k])) LM.map.removeLayer(LM.tiles[k]); });
     LM.tiles[b].addTo(LM.map); LM.tiles[b].bringToBack();
@@ -4085,7 +4089,6 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
     document.querySelectorAll('#mpBase .chip').forEach((c) => c.addEventListener('click', () => setBase(c.dataset.base)));
     window.addEventListener('resize', () => { if (LM.map && LS.main === 'legal' && LS.sub === 'map') LM.map.invalidateSize(); });
     $('mpFsBack').addEventListener('click', () => setFs(false));
-    $('mpFsBase').addEventListener('click', () => setBase(LM.base === 'sat' ? 'osm' : 'sat'));
     $('mpFsList').addEventListener('click', () => setFsList(!document.body.classList.contains('mp-list-open')));
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape' || !LM.fs) return;
