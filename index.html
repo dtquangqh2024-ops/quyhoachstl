@@ -187,10 +187,10 @@
     grid-template-columns: 1fr;
     gap: 12px;
   }
-  @media (min-width: 720px) {
+  @media (min-width: 900px) {
     .grid { grid-template-columns: 1fr 1fr; }
   }
-  @media (min-width: 1080px) {
+  @media (min-width: 1100px) {
     .grid { grid-template-columns: 1fr 1fr 1fr; }
   }
 
@@ -1510,7 +1510,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .logo-col .logo-plate { padding: 8px 16px; border-radius: 6px; }
   .logo-col .logo-img { height: 46px; }
   .logo-cap { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; color: #dbe5f3; text-align: center; line-height: 1.45; }
-  @media (max-width: 640px) { header.top h1 { font-size: 24px; } .logo-col .logo-img { height: 32px; } .logo-cap { font-size: 9px; } }
+  @media (max-width: 1024px) { header.top h1 { font-size: 24px; } .logo-col .logo-img { height: 32px; } .logo-cap { font-size: 9px; } }
 
   /* ===== Bảng Pháp lý: cột gọn, Ghi chú rộng, Mở nhanh cuối và gọn ===== */
   table.lg-table { table-layout: auto; }
@@ -1575,8 +1575,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-sdd.cl .mp-sdd-tg { height: 36px; padding: 0 12px; }
   .mp-sdd.cl .mp-sdd-in { display: none; }
 
-  /* ===== Đầu trang trên điện thoại: 2 dòng gọn (27/10) ===== */
-  @media (max-width: 640px) {
+  /* ===== Đầu trang trên điện thoại + tablet: 2 dòng gọn, logo 1 góc (27/10) ===== */
+  @media (max-width: 1024px) {
     header.top { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px; row-gap: 7px; align-items: center; padding-top: 12px; padding-bottom: 12px; }
     header.top .header-textblock { display: contents; }
     header.top h1 { grid-column: 1; grid-row: 1; font-size: 19px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1610,7 +1610,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   body.mp-fs-on .leaflet-right { right: var(--sar); }
   body.mp-fs-on .leaflet-bottom { bottom: var(--sab); }
   body.mp-fs-on .mp-side { top: calc(54px + var(--sat)); right: calc(10px + var(--sar)); max-height: calc(100vh - 110px - var(--sat) - var(--sab)); max-height: calc(100dvh - 110px - var(--sat) - var(--sab)); }
-  @media (max-width: 640px) { header.top { padding-top: calc(12px + var(--sat)); } }
+  @media (max-width: 1024px) { header.top { padding-top: calc(12px + var(--sat)); } }
   /* ===== ADMIN + TIMELINE THEO TUẦN ===== */
   .adm-only { display: none !important; }
   body.is-admin .adm-only { display: inline-flex !important; }
