@@ -1646,6 +1646,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .wk-chip:hover { border-color: var(--navy-2); }
   .wk-chip .wn { font-weight: 700; font-size: 12.5px; }
   .wk-chip .wd { font-size: 10.5px; color: var(--muted); white-space: nowrap; }
+  .wk-chip.z:not(.active) .wn { color: #9aa3b2; }
   .wk-chip .wc { margin-top: 3px; font-size: 11px; font-weight: 700; background: #eef2f8; color: var(--navy-2); border-radius: 999px; padding: 0 8px; min-width: 22px; text-align: center; }
   .wk-chip .wc.z { background: #f3f4f6; color: #9aa3b2; }
   .wk-chip.cur .wn::after { content: ' •'; color: var(--green); }
@@ -2522,24 +2523,23 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
   }
   const SHOW = 8;
   WK.mountBar = function (box) {
-    const weeks = weekList(), cw = curWeek();
+    // mới nhất nằm sát nút "Tất cả" (bên trái), cũ dần sang phải; mỗi ô chỉ 2 dòng: tuần + ngày
+    const weeks = weekList().reverse(), cw = curWeek();
     const maxOff = Math.max(0, weeks.length - SHOW);
     if (WK.off > maxOff) WK.off = maxOff;
-    const endIdx = weeks.length - WK.off, startIdx = Math.max(0, endIdx - SHOW);
-    const vis = weeks.slice(startIdx, endIdx);
+    const vis = weeks.slice(WK.off, WK.off + SHOW);
     const chips = vis.map((wk) => {
       const mon = pdt(wk), n = countWeek(wk);
-      return '<button type="button" class="wk-chip' + (wk === cw ? ' cur' : '') + (state.week === wk ? ' active' : '') + '" data-wk="' + wk + '" title="Tuần ' + isoWeek(mon) + ': ' + dmy(mon) + ' – ' + dmy(addDays(mon, 6)) + '">' +
-        '<span class="wn">' + (wk === cw ? 'Tuần này' : 'Tuần ' + isoWeek(mon)) + '</span><span class="wd">' + rangeLabel(mon) + '</span><span class="wc' + (n ? '' : ' z') + '">' + n + '</span></button>';
+      return '<button type="button" class="wk-chip' + (wk === cw ? ' cur' : '') + (n ? '' : ' z') + (state.week === wk ? ' active' : '') + '" data-wk="' + wk + '" title="Tuần ' + isoWeek(mon) + ': ' + dmy(mon) + ' – ' + dmy(addDays(mon, 6)) + ' · ' + n + ' dự án có cập nhật">' +
+        '<span class="wn">' + (wk === cw ? 'Tuần này' : 'Tuần ' + isoWeek(mon)) + '</span><span class="wd">' + rangeLabel(mon) + '</span></button>';
     }).join('');
     box.innerHTML = '<div class="wk-wrap">' +
       '<button type="button" class="wk-chip all' + (state.week === 'all' ? ' active' : '') + '" data-wk="all" title="Mọi tuần — hiện cập nhật mới nhất của từng dự án"><span class="wn">Tất cả</span><span class="wd">mới nhất</span></button>' +
-      '<button type="button" class="wk-nav" data-nav="old" title="Các tuần trước" ' + (WK.off >= maxOff ? 'disabled' : '') + '>‹</button>' +
+      '<button type="button" class="wk-nav" data-nav="new" title="Các tuần mới hơn" ' + (WK.off <= 0 ? 'disabled' : '') + '>‹</button>' +
       '<div class="wk-bar">' + chips + '</div>' +
-      '<button type="button" class="wk-nav" data-nav="new" title="Các tuần sau" ' + (WK.off <= 0 ? 'disabled' : '') + '>›</button></div>';
+      '<button type="button" class="wk-nav" data-nav="old" title="Các tuần cũ hơn" ' + (WK.off >= maxOff ? 'disabled' : '') + '>›</button></div>';
     box.querySelectorAll('.wk-chip').forEach((b) => b.addEventListener('click', () => { state.week = b.dataset.wk; renderFilters(); renderGrid(); }));
     box.querySelectorAll('.wk-nav').forEach((b) => b.addEventListener('click', () => { WK.off += b.dataset.nav === 'old' ? 4 : -4; if (WK.off < 0) WK.off = 0; renderFilters(); }));
-    const act = box.querySelector('.wk-chip.active:not(.all)'); if (act && act.scrollIntoView) { try { act.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) { /* bỏ qua */ } }
   };
   WK.note = () => (!WK.ready && WK.err ? '<span class="wk-note">⚠ ' + esc(WK.err) + '</span>' : '');
 
@@ -2555,8 +2555,10 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
     });
   };
   WK.itemsHtml = function (d) {
+    // 1 báo cáo trong tuần: chỉ nội dung (ngày đã có ở dòng "Cập nhật" dưới thẻ); nhiều báo cáo: giữ ngày để phân biệt
+    const multi = d.wkItems.length > 1;
     return '<div class="wk-items">' + d.wkItems.map((e) =>
-      '<div class="wk-it"><b>' + dm(e.d) + '</b><span>' + esc(e.nd) + (e.nguoi ? '<span class="w">· ' + esc(e.nguoi) + '</span>' : '') + '</span></div>').join('') + '</div>';
+      '<div class="wk-it">' + (multi ? '<b>' + dm(e.d) + '</b>' : '') + '<span>' + esc(e.nd) + (e.nguoi ? '<span class="w">· ' + esc(e.nguoi) + '</span>' : '') + '</span></div>').join('') + '</div>';
   };
   WK.histHtml = function (d) {
     if (state.week !== 'all' || !WK.ready) return '';
@@ -2628,7 +2630,11 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
     const b = document.getElementById('admBtn');
     document.body.classList.toggle('is-admin', ADM.admin && ADM.on);
     if (!b) return;
-    b.style.display = ADM.admin ? '' : 'none';
+    // lỗi cấu hình máy chủ (không phải "không có quyền") → hiện cảnh báo để admin biết, không im lặng
+    const bad = !ADM.admin && ADM.err && !/^(Phiên đăng nhập|Tài khoản)/.test(ADM.err) && !/không có quyền/.test(ADM.err);
+    b.style.display = (ADM.admin || bad) ? '' : 'none';
+    if (bad) { b.classList.remove('adm-on'); b.textContent = '⚠ Admin chưa hoạt động'; b.title = ADM.err; b.onclick = () => alert('Chế độ sửa chưa chạy được:\n' + ADM.err); return; }
+    b.onclick = null;
     b.classList.toggle('adm-on', ADM.admin && ADM.on);
     b.textContent = ADM.on ? '✏ Đang bật chế độ sửa' : '🔒 Chế độ sửa (đang tắt)';
     b.title = ADM.on ? 'Bấm để tắt chế độ sửa' : 'Bấm để bật chế độ sửa (chỉ tài khoản admin)';
@@ -2639,7 +2645,8 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
     try {
       const o = await api({ action: 'me' });
       ADM.admin = !!o.admin; ADM.name = o.name || ''; ADM.opts = { statuses: o.statuses || [], people: o.people || [] };
-    } catch (e) { ADM.admin = false; }
+      ADM.err = '';
+    } catch (e) { ADM.admin = false; ADM.err = String(e.message || e); try { console.warn('[admin]', ADM.err); } catch (x) { /* bỏ qua */ } }
     refreshAdminUi();
   };
 
@@ -2738,6 +2745,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
 
   const admBtn = document.getElementById('admBtn');
   if (admBtn) admBtn.addEventListener('click', () => {
+    if (!ADM.admin) return;
     ADM.on = !ADM.on; saveLS(); refreshAdminUi();
     toast(ADM.on ? 'Đã bật chế độ sửa.' : 'Đã tắt chế độ sửa.');
   });
