@@ -2805,6 +2805,15 @@ function gpkGeom(u8, tf) {
   const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
   return gpkWkb(dv, 8 + env, tf).g;
 }
+/* VN-2000 → WGS84: bộ 7 tham số Bursa-Wolf thường dùng cho VN-2000 (QGIS/EPSG:3405). Không có bước này bản đồ lệch ~200 m (Đông ~195 m, Nam ~110 m ở Hà Nội). */
+const GPK_TOWGS84 = '-191.90441429,-39.30318279,-111.45032835,-0.00928836,0.01975479,-0.00427372,0.252906278';
+function gpkProjStr(wkt) {
+  const g = (k) => { const m = new RegExp('PARAMETER\\["' + k + '",\\s*([-0-9.eE]+)').exec(wkt); return m ? m[1] : null; };
+  if (/PROJECTION\["Transverse_Mercator"\]/.test(wkt) && /VN-?2000|Vietnam_2000/i.test(wkt)) {
+    return '+proj=tmerc +lat_0=' + (g('latitude_of_origin') || 0) + ' +lon_0=' + g('central_meridian') + ' +k=' + g('scale_factor') + ' +x_0=' + g('false_easting') + ' +y_0=' + (g('false_northing') || 0) + ' +ellps=WGS84 +towgs84=' + GPK_TOWGS84 + ' +units=m +no_defs';
+  }
+  return wkt;
+}
 const GPK_KEEP = ['tenDoiTuong', 'tenLoDat', 'dienTich', 'tangCao', 'matDoXayDung', 'heSoSuDungDat', 'soCanHo', 'danSo', 'phanLoai', 'ghiChu', 'Text', 'ten', 'tenCongTrinh', 'loai', 'Layer'];
 const r6 = (v) => Math.round(v * 1e6) / 1e6;
 /* SQL: sql.js đã khởi tạo; proj4: thư viện proj4; bytes: Uint8Array của file .gpkg */
@@ -2818,7 +2827,7 @@ function gpkConvert(SQL, proj4, bytes) {
     if (tfs[id]) return tfs[id];
     if (id === 4326) return (tfs[id] = (x, y) => [r6(x), r6(y)]);
     const w = wkts[id]; if (!w || w === 'undefined') throw new Error('Không rõ hệ tọa độ (srs ' + id + ')');
-    const p = proj4(w, 'EPSG:4326');
+    const p = proj4(gpkProjStr(w), 'EPSG:4326');
     return (tfs[id] = (x, y) => { const c = p.forward([x, y]); return [r6(c[0]), r6(c[1])]; });
   };
   const layers = []; let nTot = 0; let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
@@ -2844,7 +2853,6 @@ function gpkConvert(SQL, proj4, bytes) {
   db.close();
   return { v: 1, bounds: [[miny, minx], [maxy, maxx]], n: nTot, layers, skipped };
 }
-
 const GPK = (() => {
   const CDN_SQL = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/', CDN_PROJ = 'https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js';
   const E = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
@@ -2975,7 +2983,7 @@ const GPK = (() => {
     ADM.openModal('<h3>Import GeoPackage</h3><div class="sub">' + E(file.name) + ' → ' + res.layers.length + ' layers, ' + res.n + ' features, ' + mb + ' MB (WGS84)</div>' +
       '<label for="gpkProj">Project (must match the Dashboard name)</label><input id="gpkProj" list="gpkNames" value="' + E(guess) + '"><datalist id="gpkNames">' + names.map((n) => '<option value="' + E(n) + '">').join('') + '</datalist>' +
       '<div class="hint" id="gpkWarn"></div>' +
-      '<div class="hint">Skipped: terrain/contour layers' + (res.skipped.length ? ' (' + res.skipped.length + ')' : '') + '. Re-importing the same project overwrites its previous layers.</div>' +
+      '<div class="hint">Datum: VN-2000 → WGS84 (7-parameter). Skipped: terrain/contour layers' + (res.skipped.length ? ' (' + res.skipped.length + ')' : '') + '. Re-importing the same project overwrites its previous layers.</div>' +
       '<div class="err" id="mdErr" style="display:none"></div><div class="btns"><button id="gpkCancel">Cancel</button><button class="pri" id="gpkOk">Save to Drive</button></div>', (md) => {
         const inp = md.querySelector('#gpkProj'), warn = md.querySelector('#gpkWarn');
         const chk = () => { const v = inp.value.trim().toLowerCase(); warn.textContent = S.list.some((r) => r.project.toLowerCase() === v) ? '⚠ This project already has layers — they will be replaced.' : (names.some((n) => n.toLowerCase() === v) ? '' : '⚠ Name does not match any Dashboard project.'); };
