@@ -1429,6 +1429,21 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-sdd .mp-dn.off .mp-sdd-b { display: none; }
   .mp-sdd.off .mp-dn .mp-sdd-b { display: block; }
   .mp-sdd.off .mp-dn.off .mp-sdd-b { display: none; }
+  .mp-gpk { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--line); font-size: 12px; }
+  .mp-gpk .gp-t { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .mp-gpk .gp-imp { font: inherit; font-size: 10.5px; font-weight: 600; padding: 2px 6px; border: 1px solid var(--navy); border-radius: 4px; background: var(--navy); color: #fff; cursor: pointer; }
+  .mp-gpk .gp-note, .mp-gpk .gp-meta { color: var(--muted); font-size: 11px; }
+  .mp-gpk .gp { padding: 3px 0 4px; border-bottom: 1px dashed var(--line); }
+  .mp-gpk .gp-h { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+  .mp-gpk .gp-h label, .mp-gpk .gp-sub label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+  .mp-gpk .gp-h button { font: inherit; border: 1px solid var(--line); background: #fff; border-radius: 4px; padding: 0 5px; cursor: pointer; margin-left: 3px; }
+  .mp-gpk .gp-sub { margin: 3px 0 0 18px; display: grid; gap: 2px; }
+  .mp-gpk .gp-sub small { color: var(--muted); }
+  .mp-gpk .gp-more summary { cursor: pointer; color: var(--navy-2); font-weight: 600; margin: 2px 0; }
+  .mp-gpk .gp-more { display: grid; gap: 2px; }
+  .mp-gpk-lbl { background: transparent !important; border: 0 !important; box-shadow: none !important; font-weight: 700; font-size: 11px; color: #1f2937; text-shadow: 0 0 3px #fff, 0 0 3px #fff; display: none; }
+  .mp-gpk-lbl::before { display: none !important; }
+  .gpk-lbl-on .mp-gpk-lbl { display: block; }
   .mp-dn-go { margin-top: 6px; }
   .mp-dn-go button { width: 100%; font: inherit; font-size: 11px; font-weight: 600; padding: 3px 4px; border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--navy-2); cursor: pointer; }
   .mp-sdd-in { max-height: calc(100vh - 170px); overflow: auto; }
@@ -2626,6 +2641,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
   const $m = (id) => document.getElementById(id);
   function showErr(msg) { const e = $m('mdErr'); if (e) { e.textContent = msg; e.style.display = msg ? 'block' : 'none'; } }
+  ADM.api = api; ADM.toast = toast; ADM.openModal = openModal; ADM.closeModal = closeModal; ADM.showErr = showErr;
 
   function refreshAdminUi() {
     const b = document.getElementById('admBtn');
@@ -2753,6 +2769,233 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
   refreshAdminUi();
   ADM.check();
 })();
+</script>
+<script>
+
+/* ===== Lớp bản đồ dự án nạp từ GPKG: đọc file ngay trong trình duyệt → lưu Drive (qua Apps Script) → hiện trên bản đồ ===== */
+/* GPK: đọc GeoPackage (HoSoGIS TT16) trong trình duyệt → gói GeoJSON gọn WGS84 */
+const GPK_SKIP = /^(NenDiaHinh|HienTrang — (MatCat|PhanVung)|layer_styles)/;
+function gpkWkb(dv, o, tf) {
+  const le = dv.getUint8(o) === 1; o += 1;
+  let t = dv.getUint32(o, le); o += 4;
+  let z = false, m = false;
+  if (t & 0x80000000) { z = true; } if (t & 0x40000000) { m = true; }
+  t &= 0x0fffffff;
+  if (t >= 3000) { z = true; m = true; t -= 3000; } else if (t >= 2000) { m = true; t -= 2000; } else if (t >= 1000) { z = true; t -= 1000; }
+  const dim = 2 + (z ? 1 : 0) + (m ? 1 : 0);
+  const pt = () => { const x = dv.getFloat64(o, le), y = dv.getFloat64(o + 8, le); o += 8 * dim; return tf(x, y); };
+  const pts = () => { const n = dv.getUint32(o, le); o += 4; const a = []; for (let i = 0; i < n; i++) a.push(pt()); return a; };
+  const rings = () => { const n = dv.getUint32(o, le); o += 4; const a = []; for (let i = 0; i < n; i++) a.push(pts()); return a; };
+  let g;
+  if (t === 1) g = { type: 'Point', coordinates: pt() };
+  else if (t === 2) g = { type: 'LineString', coordinates: pts() };
+  else if (t === 3) g = { type: 'Polygon', coordinates: rings() };
+  else if (t >= 4 && t <= 7) {
+    const n = dv.getUint32(o, le); o += 4; const parts = [];
+    for (let i = 0; i < n; i++) { const r = gpkWkb(dv, o, tf); parts.push(r.g); o = r.o; }
+    const nm = { 4: 'MultiPoint', 5: 'MultiLineString', 6: 'MultiPolygon', 7: 'GeometryCollection' }[t];
+    g = t === 7 ? { type: nm, geometries: parts } : { type: nm, coordinates: parts.map((p) => p.coordinates) };
+  } else throw new Error('WKB type ' + t);
+  return { g, o };
+}
+function gpkGeom(u8, tf) {
+  if (!u8 || u8.length < 8 || u8[0] !== 0x47 || u8[1] !== 0x50) return null;
+  const fl = u8[3]; if (fl & 0x10) return null;
+  const env = [0, 32, 48, 48, 64][(fl >> 1) & 7] || 0;
+  const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  return gpkWkb(dv, 8 + env, tf).g;
+}
+const GPK_KEEP = ['tenDoiTuong', 'tenLoDat', 'dienTich', 'tangCao', 'matDoXayDung', 'heSoSuDungDat', 'soCanHo', 'danSo', 'phanLoai', 'ghiChu', 'Text', 'ten', 'tenCongTrinh', 'loai', 'Layer'];
+const r6 = (v) => Math.round(v * 1e6) / 1e6;
+/* SQL: sql.js đã khởi tạo; proj4: thư viện proj4; bytes: Uint8Array của file .gpkg */
+function gpkConvert(SQL, proj4, bytes) {
+  const db = new SQL.Database(bytes);
+  const q = (s) => { const r = db.exec(s); return r.length ? r[0].values : []; };
+  const srsRows = q("select c.table_name, g.srs_id from gpkg_contents c join gpkg_geometry_columns g on g.table_name=c.table_name where c.data_type='features'");
+  const wkts = {}; q('select srs_id, definition from gpkg_spatial_ref_sys').forEach(([i, d]) => { wkts[i] = d; });
+  const tfs = {};
+  const getTf = (id) => {
+    if (tfs[id]) return tfs[id];
+    if (id === 4326) return (tfs[id] = (x, y) => [r6(x), r6(y)]);
+    const w = wkts[id]; if (!w || w === 'undefined') throw new Error('Không rõ hệ tọa độ (srs ' + id + ')');
+    const p = proj4(w, 'EPSG:4326');
+    return (tfs[id] = (x, y) => { const c = p.forward([x, y]); return [r6(c[0]), r6(c[1])]; });
+  };
+  const layers = []; let nTot = 0; let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
+  const bb = (c) => { if (typeof c[0] === 'number') { if (c[0] < minx) minx = c[0]; if (c[0] > maxx) maxx = c[0]; if (c[1] < miny) miny = c[1]; if (c[1] > maxy) maxy = c[1]; } else c.forEach(bb); };
+  const skipped = [];
+  srsRows.forEach(([tn, sid]) => {
+    const cnt = q('select count(*) from "' + tn + '"')[0][0]; if (!cnt) return;
+    if (GPK_SKIP.test(tn)) { skipped.push(tn + ' (' + cnt + ')'); return; }
+    const gcol = q("select column_name from gpkg_geometry_columns where table_name='" + tn.replace(/'/g, "''") + "'")[0][0];
+    const info = db.exec('pragma table_info("' + tn + '")')[0].values.map((r) => r[1]);
+    const keep = GPK_KEEP.filter((k) => info.indexOf(k) >= 0);
+    const tf = getTf(sid), feats = [];
+    const st = db.prepare('select "' + gcol + '"' + keep.map((k) => ', "' + k + '"').join('') + ' from "' + tn + '"');
+    while (st.step()) {
+      const r = st.get(); let g; try { g = gpkGeom(r[0], tf); } catch (e) { g = null; }
+      if (!g) continue; bb(g.coordinates || []);
+      const pr = {}; keep.forEach((k, i) => { const v = r[i + 1]; if (v != null && v !== '' && v !== 'None') pr[k] = typeof v === 'number' ? Math.round(v * 100) / 100 : v; });
+      feats.push({ type: 'Feature', properties: pr, geometry: g });
+    }
+    st.free();
+    if (feats.length) { nTot += feats.length; layers.push({ k: tn, t: tn.slice(-1), n: feats.length, f: feats }); }
+  });
+  db.close();
+  return { v: 1, bounds: [[miny, minx], [maxy, maxx]], n: nTot, layers, skipped };
+}
+
+const GPK = (() => {
+  const CDN_SQL = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/', CDN_PROJ = 'https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js';
+  const E = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+  const S = { list: [], err: '', cache: {}, shown: {}, more: {}, map: null, root: null, loading: false };
+  const DEF = {
+    'QuyHoach — RanhGioiQuyHoach_A': { n: 'Ranh quy hoạch', on: 1, st: { color: '#d62828', weight: 2.5, fill: false, dashArray: '7 4' } },
+    'QuyHoach — ChucNangSuDungDat_A': { n: 'Quy hoạch sử dụng đất', on: 1, fillBy: 1 },
+    'QuyHoach — MangLuoiGiaoThongDuongBo_A': { n: 'Giao thông (mặt)', on: 1, st: { color: '#6b7280', weight: 1, fillColor: '#9ca3af', fillOpacity: 0.55 } },
+    'QuyHoach — MangLuoiGiaoThongDuongBo_L': { n: 'Giao thông (tim đường)', on: 0, st: { color: '#374151', weight: 1.5 } },
+    'QuyHoach — ChiGioiXayDung_L': { n: 'Chỉ giới xây dựng', on: 1, st: { color: '#7c3aed', weight: 1.6, dashArray: '4 3' } },
+    'QuyHoach — ChiGioiDuongDo_L': { n: 'Chỉ giới đường đỏ', on: 1, st: { color: '#dc2626', weight: 1.6, dashArray: '9 3' } },
+    'QuyHoach — CongTrinh_A': { n: 'Công trình', on: 1, st: { color: '#b45309', weight: 1, fillColor: '#fcd34d', fillOpacity: 0.6 } },
+    'QuyHoach — CayXanh_P': { n: 'Cây xanh', on: 0, pt: '#16a34a', r: 2.5 },
+    'QuyHoach — KhongGianKTCQ_A': { n: 'Không gian KTCQ (mặt)', on: 0, st: { color: '#0f766e', weight: 1, fillColor: '#5eead4', fillOpacity: 0.35 } },
+    'QuyHoach — KhongGianKTCQ_L': { n: 'Không gian KTCQ (tuyến)', on: 0, st: { color: '#0f766e', weight: 1 } },
+    'HienTrang — ChucNangSuDungDat_A': { n: 'Hiện trạng sử dụng đất', on: 0, fillBy: 1 },
+    'HienTrang — RanhGioiQuyHoach_A': { n: 'Ranh (hiện trạng)', on: 0, st: { color: '#ea580c', weight: 2, fill: false, dashArray: '3 3' } },
+    'MocGioiQuyHoach_P': { n: 'Mốc giới', on: 0, pt: '#be123c', r: 3 }
+  };
+  const TOK = [['MocGioiQuyHoach', 'Mốc giới quy hoạch'], ['BoViaDaiPhanCach', 'Bó vỉa, dải phân cách'], ['DongMucThietKe', 'Đường đồng mức thiết kế'], ['HuongThoatNuocMua', 'Hướng thoát nước mưa'], ['HuongDi', 'Hướng đi'], ['MatCatNgang', 'Mặt cắt ngang'], ['TuyenTKDT', 'Tuyến TKĐT'], ['CaoDoNen', 'Cao độ nền'], ['ChucNangCongTrinh', 'Chức năng công trình'], ['DiemDauNoi', 'Điểm đấu nối'], ['DiemNhanChinh', 'Điểm nhấn chính'], ['DiemToaDoTimDuongChuyenHuongTimDuong', 'Tọa độ tim đường'], ['MangLuoiPhanPhoiDien', 'Lưới phân phối điện'], ['MangLuoiCapNuoc', 'Lưới cấp nước'], ['MangLuoiCapThongTin', 'Lưới thông tin'], ['MangLuoiChieuSang', 'Lưới chiếu sáng'], ['MangLuoiThoatNuocMua', 'Lưới thoát nước mưa'], ['MangLuoiThoatNuocThai', 'Lưới thoát nước thải'], ['CongTrinhCapDien', 'CT cấp điện'], ['CongtrinhCapNuocPCCC', 'CT cấp nước, PCCC'], ['CongTrinhCBKT', 'CT CBKT'], ['CongTrinhChieuSang', 'CT chiếu sáng'], ['CongTrinhNgam', 'Công trình ngầm'], ['CongTrinhThongTin', 'CT thông tin'], ['CongTrinhTNTvaVSMT', 'CT thoát nước thải, VSMT'], ['CongTrinh', 'Công trình']];
+  const nice = (k) => { const b = k.replace(/^.*— /, '').replace(/_[ALP]$/, ''), t = TOK.find((x) => x[0] === b); return (/^HienTrang/.test(k) ? 'Hiện trạng: ' : '') + (t ? t[1] : b.replace(/([a-z])([A-Z])/g, '$1 $2')); };
+  const def = (l) => DEF[l.k] || (l.t === 'A' ? { n: nice(l.k), on: 0, st: { color: '#2563eb', weight: 1, fillColor: '#93c5fd', fillOpacity: 0.3 } } : l.t === 'L' ? { n: nice(l.k), on: 0, st: { color: '#475569', weight: 1.2 } } : { n: nice(l.k), on: 0, pt: '#2563eb', r: 3 });
+  const COL = [[/giao th[ôo]ng|đường|bãi đỗ/i, '#a3a9b3'], [/chung cư|nhà ở|nhà liền|biệt thự/i, '#f6a35a'], [/cây xanh|công viên|mặt nước|vườn/i, '#7bc47f'], [/công cộng|văn hóa|y tế|thể dục|thương mại|dịch vụ/i, '#ef6f6c'], [/trường|giáo dục|mầm non|học/i, '#f2cf5b'], [/hỗn hợp/i, '#c78df0'], [/kỹ thuật|hạ tầng|điện|nước/i, '#7fa8d8'], [/hiện trạng|dân cư|làng/i, '#d9c3a5']];
+  const colorOf = (n) => { n = String(n || ''); for (const [re, c] of COL) if (re.test(n)) return c; let h = 0; for (let i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0; return 'hsl(' + (h % 360) + ',45%,72%)'; };
+  const fmt = (v) => String(v).replace('.', ',');
+  const popup = (p, ltitle) => {
+    const t = p.tenDoiTuong || p.Text || ltitle || '';
+    const rows = [['tenLoDat', 'Lô đất'], ['dienTich', 'Diện tích (m²)'], ['tangCao', 'Tầng cao'], ['matDoXayDung', 'Mật độ XD (%)'], ['heSoSuDungDat', 'Hệ số SDĐ'], ['soCanHo', 'Số căn hộ'], ['danSo', 'Dân số'], ['phanLoai', 'Phân loại'], ['ghiChu', 'Ghi chú']];
+    return '<b>' + E(t) + '</b>' + rows.filter(([k]) => p[k] != null).map(([k, l]) => '<div>' + l + ': <b>' + E(fmt(p[k])) + '</b></div>').join('') + '<div class="k">' + E(ltitle) + '</div>';
+  };
+  const get = async (q) => { const r = await fetch(WEB_APP_URL + '?action=' + q + AUTH.qs(), { cache: 'no-store' }); const j = await r.json(); if (j && j.error) throw new Error(j.error); return j; };
+
+  function build(rec, l) {
+    const d = def(l), opt = { bubblingMouseEvents: false };
+    const gj = L.geoJSON({ type: 'FeatureCollection', features: l.f }, {
+      style: (f) => d.fillBy ? { color: '#4b5563', weight: 1, fillColor: colorOf(f.properties.tenDoiTuong), fillOpacity: 0.72 } : d.st,
+      pointToLayer: (f, ll) => L.circleMarker(ll, Object.assign({ radius: d.r || 3, color: '#fff', weight: 0.8, fillColor: d.pt || '#2563eb', fillOpacity: 0.95 }, opt)),
+      onEachFeature: (f, lay) => {
+        lay.bindPopup(popup(f.properties, rec.project + ' · ' + d.n), { className: 'mp-sdd-pop', maxWidth: 260 });
+        if (d.fillBy && f.properties.tenLoDat) lay.bindTooltip(E(f.properties.tenLoDat), { permanent: true, direction: 'center', className: 'mp-gpk-lbl' });
+      },
+      bubblingMouseEvents: false
+    });
+    return gj;
+  }
+  async function ensure(rec) {
+    if (S.cache[rec.id]) return S.cache[rec.id];
+    const data = await get('getLayer&id=' + encodeURIComponent(rec.id));
+    const order = { A: 0, L: 1, P: 2 };
+    const layers = data.layers.slice().sort((a, b) => (order[a.t] - order[b.t]) || (a.k < b.k ? -1 : 1)).map((l) => ({ l, d: def(l), gj: null, on: !!def(l).on }));
+    return (S.cache[rec.id] = { data, layers });
+  }
+  function draw(rec, c) {
+    c.layers.forEach((x) => {
+      const want = S.shown[rec.id] && x.on;
+      if (want && !x.gj) x.gj = build(rec, x.l);
+      if (x.gj) { if (want && !S.map.hasLayer(x.gj)) x.gj.addTo(S.map); if (!want && S.map.hasLayer(x.gj)) S.map.removeLayer(x.gj); }
+    });
+  }
+  function fit(c) { try { if (c.data.bounds) S.map.fitBounds(c.data.bounds, { padding: [30, 30], maxZoom: 19 }); } catch (e) { /* bỏ qua */ } }
+  function ago(ms) { const d = new Date(ms); return d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); }
+
+  function render() {
+    const root = S.root; if (!root) return;
+    const body = S.err ? '<div class="gp-note">' + E(S.err) + '</div>' : !S.list.length ? '<div class="gp-note">' + (S.loading ? 'Loading…' : 'No project layers yet.') + '</div>' :
+      S.list.map((r) => {
+        const c = S.cache[r.id], on = !!S.shown[r.id];
+        const li = (x, i) => '<label><input type="checkbox" data-i="' + i + '"' + (x.on ? ' checked' : '') + '> ' + E(x.d.n) + ' <small>' + x.l.n + '</small></label>';
+        const sub = on && c ? '<div class="gp-sub">' + c.layers.map((x, i) => x.d.on ? li(x, i) : '').join('') + (c.layers.some((x) => !x.d.on) ? '<details class="gp-more"' + (S.more[r.id] ? ' open' : '') + '><summary>Other layers (' + c.layers.filter((x) => !x.d.on).length + ')</summary>' + c.layers.map((x, i) => x.d.on ? '' : li(x, i)).join('') + '</details>' : '') + '</div>' : '';
+        return '<div class="gp" data-id="' + E(r.id) + '"><div class="gp-h"><label><input type="checkbox" class="gp-all"' + (on ? ' checked' : '') + '> 📁 <b>' + E(r.project) + '</b></label><span><button type="button" class="gp-zoom" title="Zoom to project">⌖</button><button type="button" class="gp-del adm-only" title="Delete this layer set">🗑</button></span></div><div class="gp-meta">' + r.n + ' features · ' + ago(r.updated) + '</div>' + sub + '</div>';
+      }).join('');
+    root.querySelector('.gp-list').innerHTML = body;
+  }
+  async function reload() {
+    S.loading = true; S.err = ''; render();
+    try { S.list = (await get('listLayers')).layers || []; } catch (e) { S.err = /unknown action/i.test(e.message) ? 'Needs Code_v5_3.gs on Apps Script (Deploy → New version).' : 'Could not load: ' + e.message; }
+    S.loading = false; render();
+  }
+  async function toggle(rec, on, zoom) {
+    S.shown[rec.id] = on;
+    try { const c = await ensure(rec); draw(rec, c); if (on && zoom) fit(c); } catch (e) { S.shown[rec.id] = false; ADM.toast('Could not load layers: ' + e.message, true); }
+    render();
+  }
+  function mount(panel, map) {
+    S.map = map;
+    const host = panel.querySelector('.mp-sdd-in') || panel;
+    if (host.querySelector('.mp-gpk')) return;
+    const root = document.createElement('div'); root.className = 'mp-gpk'; S.root = root;
+    root.innerHTML = '<div class="gp-t">📁 Project layers <button type="button" class="gp-imp adm-only" title="Import a GeoPackage (.gpkg) file">⬆ Import GPKG</button></div><div class="gp-list"></div><input type="file" id="gpkFile" accept=".gpkg" style="display:none">';
+    host.appendChild(root);
+    const zf = () => map.getZoom() >= 17; const lz = () => map.getContainer().classList.toggle('gpk-lbl-on', zf()); map.on('zoomend', lz); lz();
+    root.addEventListener('click', (e) => {
+      const gp = e.target.closest('.gp'), rec = gp && S.list.find((r) => r.id === gp.dataset.id);
+      if (e.target.closest('.gp-imp')) { root.querySelector('#gpkFile').value = ''; root.querySelector('#gpkFile').click(); return; }
+      if (!rec) return;
+      if (e.target.closest('.gp-zoom')) { ensure(rec).then((c) => { if (!S.shown[rec.id]) toggle(rec, true, true); else fit(c); }).catch((er) => ADM.toast(er.message, true)); return; }
+      if (e.target.closest('.gp-del')) { if (confirm('Delete the map layers of "' + rec.project + '" from Drive?')) ADM.api({ action: 'deleteLayer', id: rec.id }).then(() => { const c = S.cache[rec.id]; if (c) c.layers.forEach((x) => { if (x.gj) S.map.removeLayer(x.gj); }); delete S.cache[rec.id]; delete S.shown[rec.id]; ADM.toast('Deleted'); reload(); }).catch((er) => ADM.toast(er.message, true)); }
+    });
+    root.addEventListener('toggle', (e) => { const g = e.target.closest && e.target.closest('.gp'); if (g && e.target.classList.contains('gp-more')) S.more[g.dataset.id] = e.target.open; }, true);
+    root.addEventListener('change', (e) => {
+      const gp = e.target.closest('.gp'), rec = gp && S.list.find((r) => r.id === gp.dataset.id); if (!rec) return;
+      if (e.target.classList.contains('gp-all')) { toggle(rec, e.target.checked, true); return; }
+      if (e.target.dataset.i != null) { const c = S.cache[rec.id]; c.layers[+e.target.dataset.i].on = e.target.checked; draw(rec, c); }
+    });
+    root.querySelector('#gpkFile').addEventListener('change', (e) => { const f = e.target.files[0]; if (f) importFile(f); });
+    reload();
+  }
+
+  /* ---- nạp file ---- */
+  const loadJs = (src) => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => no(new Error('Could not load ' + src)); document.head.appendChild(s); });
+  let SQLP = null;
+  async function engine() {
+    if (!window.initSqlJs) await loadJs(CDN_SQL + 'sql-wasm.js');
+    if (!window.proj4) await loadJs(CDN_PROJ);
+    if (!SQLP) SQLP = window.initSqlJs({ locateFile: (f) => CDN_SQL + f });
+    return { SQL: await SQLP, proj4: window.proj4 };
+  }
+  async function importFile(file) {
+    ADM.toast('Reading ' + file.name + '…');
+    let res;
+    try { const { SQL, proj4 } = await engine(); res = gpkConvert(SQL, proj4, new Uint8Array(await file.arrayBuffer())); }
+    catch (e) { ADM.toast('Could not read the GPKG: ' + e.message, true); return; }
+    if (!res.layers.length) { ADM.toast('This GPKG has no data layers.', true); return; }
+    const names = (typeof DATA !== 'undefined' ? DATA : []).map((d) => d.ten).filter(Boolean);
+    const base = file.name.replace(/\.gpkg$/i, '').replace(/^\d+[-_ ]*/, '');
+    const guess = names.find((n) => n.toLowerCase() === base.toLowerCase()) || names.find((n) => base && n.toLowerCase().includes(base.toLowerCase())) || base;
+    const json = JSON.stringify(res), mb = (json.length / 1048576).toFixed(2);
+    ADM.openModal('<h3>Import GeoPackage</h3><div class="sub">' + E(file.name) + ' → ' + res.layers.length + ' layers, ' + res.n + ' features, ' + mb + ' MB (WGS84)</div>' +
+      '<label for="gpkProj">Project (must match the Dashboard name)</label><input id="gpkProj" list="gpkNames" value="' + E(guess) + '"><datalist id="gpkNames">' + names.map((n) => '<option value="' + E(n) + '">').join('') + '</datalist>' +
+      '<div class="hint" id="gpkWarn"></div>' +
+      '<div class="hint">Skipped: terrain/contour layers' + (res.skipped.length ? ' (' + res.skipped.length + ')' : '') + '. Re-importing the same project overwrites its previous layers.</div>' +
+      '<div class="err" id="mdErr" style="display:none"></div><div class="btns"><button id="gpkCancel">Cancel</button><button class="pri" id="gpkOk">Save to Drive</button></div>', (md) => {
+        const inp = md.querySelector('#gpkProj'), warn = md.querySelector('#gpkWarn');
+        const chk = () => { const v = inp.value.trim().toLowerCase(); warn.textContent = S.list.some((r) => r.project.toLowerCase() === v) ? '⚠ This project already has layers — they will be replaced.' : (names.some((n) => n.toLowerCase() === v) ? '' : '⚠ Name does not match any Dashboard project.'); };
+        inp.addEventListener('input', chk); chk();
+        md.querySelector('#gpkCancel').onclick = () => ADM.closeModal();
+        md.querySelector('#gpkOk').onclick = async (ev) => {
+          const pj = inp.value.trim(); if (!pj) { ADM.showErr('Enter the project name.'); return; }
+          ev.target.disabled = true; ev.target.textContent = 'Saving…';
+          try {
+            const o = await ADM.api({ action: 'saveLayer', project: pj, payload: json });
+            ADM.closeModal(); ADM.toast('Saved map layers — ' + pj);
+            const old = S.list.find((r) => r.project === o.project); if (old) { const c = S.cache[old.id]; if (c) c.layers.forEach((x) => { if (x.gj) S.map.removeLayer(x.gj); }); delete S.cache[old.id]; delete S.shown[old.id]; }
+            await reload(); const rec = S.list.find((r) => r.id === o.id); if (rec) toggle(rec, true, true);
+          } catch (er) { ADM.showErr(String(er.message || er)); ev.target.disabled = false; ev.target.textContent = 'Save to Drive'; }
+        };
+      });
+  }
+  return { mount, reload, convert: gpkConvert };
+})();
+window.GPK = GPK;
 </script>
 <script>
 /* ===== Module Pháp lý & tiến độ (đọc sheet thứ 2 qua Apps Script: action=listLegal) ===== */
@@ -3694,6 +3937,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
         '</div>' +
         '<div class="mp-gt"><label class="mp-sdd-t"><input type="checkbox" id="gtDs"' + (onDS ? ' checked' : '') + '> <i class="ln ds"></i>Đường sắt đô thị</label>' +
         '<label class="mp-sdd-t"><input type="checkbox" id="gtGt"' + (onGT ? ' checked' : '') + '> <i class="ln gt"></i>Giao thông đô thị</label></div>' + dnHtml + '</div>';
+      if (window.GPK) GPK.mount(d, map);
       L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
       /* thu/mở: điện thoại mặc định thu gọn, máy tính mặc định mở; nhớ lựa chọn trên từng máy */
       d.querySelectorAll('.mp-sdd-bs button').forEach((b) => { b.classList.toggle('on', b.dataset.fb === LM.base); b.addEventListener('click', () => setBase(b.dataset.fb)); });
