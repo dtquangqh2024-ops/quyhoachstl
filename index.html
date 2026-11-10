@@ -1429,13 +1429,14 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-sdd .mp-dn.off .mp-sdd-b { display: none; }
   .mp-sdd.off .mp-dn .mp-sdd-b { display: block; }
   .mp-sdd.off .mp-dn.off .mp-sdd-b { display: none; }
-  .mp-gpk { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--line); font-size: 12px; }
+  .mp-gpk { font-size: 12px; }
   .mp-gpk .gp-t { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
   .mp-gpk .gp-imp { font: inherit; font-size: 10.5px; font-weight: 600; padding: 2px 6px; border: 1px solid var(--navy); border-radius: 4px; background: var(--navy); color: #fff; cursor: pointer; }
   .mp-gpk .gp-note, .mp-gpk .gp-meta { color: var(--muted); font-size: 11px; }
   .mp-gpk .gp { padding: 3px 0 4px; border-bottom: 1px dashed var(--line); }
   .mp-gpk .gp-h { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
   .mp-gpk .gp-h label, .mp-gpk .gp-sub label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+  .mp-gpk .gp-h .gp-x { border: 0; background: none; color: var(--muted); padding: 0 3px; }
   .mp-gpk .gp-h button { font: inherit; border: 1px solid var(--line); background: #fff; border-radius: 4px; padding: 0 5px; cursor: pointer; margin-left: 3px; }
   .mp-gpk .gp-sub { margin: 3px 0 0 18px; display: grid; gap: 2px; }
   .mp-gpk .gp-sub small { color: var(--muted); }
@@ -1444,6 +1445,18 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-gpk-lbl { background: transparent !important; border: 0 !important; box-shadow: none !important; font-weight: 700; font-size: 11px; color: #1f2937; text-shadow: 0 0 3px #fff, 0 0 3px #fff; display: none; }
   .mp-gpk-lbl::before { display: none !important; }
   .gpk-lbl-on .mp-gpk-lbl { display: block; }
+  .mp-sdd .lv1 { margin: 0 0 4px; }
+  .mp-sdd .lv1 > summary { cursor: pointer; font: 700 11px 'Space Grotesk', sans-serif; letter-spacing: .03em; text-transform: uppercase; color: var(--navy); padding: 3px 0; list-style: none; }
+  .mp-sdd .lv1 > summary::before, .mp-sdd .lv2 > summary::before { content: '▸'; display: inline-block; width: 12px; color: var(--muted); }
+  .mp-sdd details[open] > summary::before { content: '▾'; }
+  .mp-sdd .lv1 > summary::-webkit-details-marker, .mp-sdd .lv2 > summary::-webkit-details-marker { display: none; }
+  .mp-sdd .lv2 { margin: 2px 0 2px 8px; padding: 2px 0; border-top: 1px solid var(--line); }
+  .mp-sdd .lv2 > summary { cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; list-style: none; }
+  .mp-sdd .lv2 > summary::before { order: -1; }
+  .mp-sdd .lv2 > summary input { margin: 0; }
+  .mp-sdd .lv2.mp-dn { margin-top: 2px; }
+  .mp-sdd .lv1 > .gp-note { margin: 2px 0 2px 12px; }
+  .mp-sdd .lv-ct { margin-left: 8px; }
   .mp-dn-go { margin-top: 6px; }
   .mp-dn-go button { width: 100%; font: inherit; font-size: 11px; font-weight: 600; padding: 3px 4px; border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--navy-2); cursor: pointer; }
   .mp-sdd-in { max-height: calc(100vh - 170px); overflow: auto; }
@@ -2856,7 +2869,7 @@ function gpkConvert(SQL, proj4, bytes) {
 const GPK = (() => {
   const CDN_SQL = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/', CDN_PROJ = 'https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js';
   const E = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
-  const S = { list: [], err: '', cache: {}, shown: {}, more: {}, map: null, root: null, loading: false };
+  const S = { list: [], err: '', cache: {}, shown: {}, more: {}, map: null, root: null, loading: false, open: {} };
   const DEF = {
     'QuyHoach — RanhGioiQuyHoach_A': { n: 'Ranh quy hoạch', on: 1, st: { color: '#d62828', weight: 2.5, fill: false, dashArray: '7 4' } },
     'QuyHoach — ChucNangSuDungDat_A': { n: 'Quy hoạch sử dụng đất', on: 1, fillBy: 1 },
@@ -2922,7 +2935,7 @@ const GPK = (() => {
         const c = S.cache[r.id], on = !!S.shown[r.id];
         const li = (x, i) => '<label><input type="checkbox" data-i="' + i + '"' + (x.on ? ' checked' : '') + '> ' + E(x.d.n) + ' <small>' + x.l.n + '</small></label>';
         const sub = on && c ? '<div class="gp-sub">' + c.layers.map((x, i) => x.d.on ? li(x, i) : '').join('') + (c.layers.some((x) => !x.d.on) ? '<details class="gp-more"' + (S.more[r.id] ? ' open' : '') + '><summary>Other layers (' + c.layers.filter((x) => !x.d.on).length + ')</summary>' + c.layers.map((x, i) => x.d.on ? '' : li(x, i)).join('') + '</details>' : '') + '</div>' : '';
-        return '<div class="gp" data-id="' + E(r.id) + '"><div class="gp-h"><label><input type="checkbox" class="gp-all"' + (on ? ' checked' : '') + '> 📁 <b>' + E(r.project) + '</b></label><span><button type="button" class="gp-zoom" title="Zoom to project">⌖</button><button type="button" class="gp-del adm-only" title="Delete this layer set">🗑</button></span></div><div class="gp-meta">' + r.n + ' features · ' + ago(r.updated) + '</div>' + sub + '</div>';
+        return '<div class="gp" data-id="' + E(r.id) + '"><div class="gp-h"><label><input type="checkbox" class="gp-all"' + (on ? ' checked' : '') + '> 📁 <b>' + E(r.project) + '</b></label><span><button type="button" class="gp-x" title="Show / hide layers">' + (S.open[r.id] ? '▾' : '▸') + '</button><button type="button" class="gp-zoom" title="Zoom to project">⌖</button><button type="button" class="gp-del adm-only" title="Delete this layer set">🗑</button></span></div>' + (S.open[r.id] ? '<div class="gp-meta">' + r.n + ' features · ' + ago(r.updated) + '</div>' + (on && c ? sub : '<div class="gp-note">' + (on ? 'Loading…' : 'Tick the project to show its layers.') + '</div>') : '') + '</div>';
       }).join('');
     root.querySelector('.gp-list').innerHTML = body;
   }
@@ -2938,16 +2951,17 @@ const GPK = (() => {
   }
   function mount(panel, map) {
     S.map = map;
-    const host = panel.querySelector('.mp-sdd-in') || panel;
+    const host = panel.querySelector('.lv-ct') || panel.querySelector('.mp-sdd-in') || panel;
     if (host.querySelector('.mp-gpk')) return;
     const root = document.createElement('div'); root.className = 'mp-gpk'; S.root = root;
-    root.innerHTML = '<div class="gp-t">📁 Project layers <button type="button" class="gp-imp adm-only" title="Import a GeoPackage (.gpkg) file">⬆ Import GPKG</button></div><div class="gp-list"></div><input type="file" id="gpkFile" accept=".gpkg" style="display:none">';
+    root.innerHTML = '<div class="gp-t"><button type="button" class="gp-imp adm-only" title="Import a GeoPackage (.gpkg) file">⬆ Import GPKG</button></div><div class="gp-list"></div><input type="file" id="gpkFile" accept=".gpkg" style="display:none">';
     host.appendChild(root);
     const zf = () => map.getZoom() >= 17; const lz = () => map.getContainer().classList.toggle('gpk-lbl-on', zf()); map.on('zoomend', lz); lz();
     root.addEventListener('click', (e) => {
       const gp = e.target.closest('.gp'), rec = gp && S.list.find((r) => r.id === gp.dataset.id);
       if (e.target.closest('.gp-imp')) { root.querySelector('#gpkFile').value = ''; root.querySelector('#gpkFile').click(); return; }
       if (!rec) return;
+      if (e.target.closest('.gp-x')) { S.open[rec.id] = !S.open[rec.id]; render(); return; }
       if (e.target.closest('.gp-zoom')) { ensure(rec).then((c) => { if (!S.shown[rec.id]) toggle(rec, true, true); else fit(c); }).catch((er) => ADM.toast(er.message, true)); return; }
       if (e.target.closest('.gp-del')) { if (confirm('Delete the map layers of "' + rec.project + '" from Drive?')) ADM.api({ action: 'deleteLayer', id: rec.id }).then(() => { const c = S.cache[rec.id]; if (c) c.layers.forEach((x) => { if (x.gj) S.map.removeLayer(x.gj); }); delete S.cache[rec.id]; delete S.shown[rec.id]; ADM.toast('Deleted'); reload(); }).catch((er) => ADM.toast(er.message, true)); }
     });
@@ -3932,19 +3946,22 @@ window.GPK = GPK;
         const items = DN_LEG.filter((x) => x.g === g); if (!items.length) return;
         dnGroups += '<div class="gh">' + SDD_GRP[g] + '</div>' + items.map((x) => '<label class="li"><input type="checkbox" data-dl="' + esc(x.l) + '"' + (dnOffL.has(x.l) ? '' : ' checked') + '><i style="background:' + x.c + '"></i>' + esc(x.l) + '</label>').join('');
       });
-      const dnHtml = '<div class="mp-dn' + (dnOn ? '' : ' off') + '"><label class="mp-sdd-t"><input type="checkbox" id="dnOn"' + (dnOn ? ' checked' : '') + '> QHC Đà Nẵng</label>' +
+      const lvOpen = (k, def) => (lsGet('lv_' + k, def ? '1' : '0') === '1' ? ' open' : '');
+      const dnHtml = '<details class="lv2 mp-dn' + (dnOn ? '' : ' off') + '" data-lv="dn"' + lvOpen('dn', 0) + '><summary><input type="checkbox" id="dnOn"' + (dnOn ? ' checked' : '') + '><span>QHC Đà Nẵng</span></summary>' +
         '<div class="mp-sdd-b"><div class="mp-sdd-r"><span>Độ đậm</span><input type="range" id="dnOp" min="10" max="100" step="5" value="' + dnOp + '"><b id="dnOpV">' + dnOp + '%</b></div>' +
         '<div class="mp-sdd-ph">' + Object.keys(DN_PH).map((k) => '<button type="button" data-dp="' + k + '" class="' + (dnOffP.has(k) ? '' : 'on') + '" title="' + DN_PH[k] + '">' + (k === 'QHDH2050' ? '2050' : k) + '</button>').join('') + '</div>' +
         '<details class="mp-sdd-lg"><summary>Chú giải, lọc loại đất</summary><div class="mp-sdd-tools"><button type="button" data-dall="1">Hiện hết</button><button type="button" data-dall="0">Tắt hết</button></div>' + dnGroups + '</details>' +
-        '<div class="mp-dn-go"><button type="button" id="dnGo">Xem Đà Nẵng</button></div></div></div>';
-      d.innerHTML = '<button type="button" class="mp-sdd-tg" title="Mở/thu bảng lớp quy hoạch"><span>🗺 Lớp quy hoạch</span><em></em><i></i></button><div class="mp-sdd-bs"><button type="button" data-fb="osm">🗺 Bản đồ</button><button type="button" data-fb="sat">🛰 Vệ tinh</button></div><div class="mp-sdd-in">' +
-        '<label class="mp-sdd-t"><input type="checkbox" id="sddOn"' + (on ? ' checked' : '') + '> QH sử dụng đất HN</label>' +
+        '<div class="mp-dn-go"><button type="button" id="dnGo">Xem Đà Nẵng</button></div>';
+      d.innerHTML = '<button type="button" class="mp-sdd-tg" title="Mở/thu bảng lớp quy hoạch"><span>🗺 Lớp quy hoạch</span><em></em><i></i></button><div class="mp-sdd-bs"><button type="button" data-fb="osm">🗺 Bản đồ</button><button type="button" data-fb="sat">🛰 Vệ tinh</button></div><div class="mp-sdd-in"><details class="lv1" data-lv="qhc"' + lvOpen('qhc', 1) + '><summary>Quy hoạch chung (QHC)</summary><details class="lv2 mp-hn" data-lv="hn"' + lvOpen('hn', 0) + '><summary><input type="checkbox" id="sddOn"' + (on ? ' checked' : '') + '><span>QHC Hà Nội</span></summary>' +
         '<div class="mp-sdd-b"><div class="mp-sdd-r"><span>Độ đậm</span><input type="range" id="sddOp" min="10" max="100" step="5" value="' + op + '"><b id="sddOpV">' + op + '%</b></div>' +
         '<div class="mp-sdd-ph">' + Object.keys(SDD_PH).map((k) => '<button type="button" data-p="' + k + '" class="' + (offP.has(k) ? '' : 'on') + '" title="' + SDD_PH[k] + '">' + k + '</button>').join('') + '</div>' +
         '<details class="mp-sdd-lg"><summary>Chú giải, lọc loại đất</summary><div class="mp-sdd-tools"><button type="button" data-all="1">Hiện hết</button><button type="button" data-all="0">Tắt hết</button></div>' + groups + '</details>' +
         '</div>' +
         '<div class="mp-gt"><label class="mp-sdd-t"><input type="checkbox" id="gtDs"' + (onDS ? ' checked' : '') + '> <i class="ln ds"></i>Đường sắt đô thị</label>' +
-        '<label class="mp-sdd-t"><input type="checkbox" id="gtGt"' + (onGT ? ' checked' : '') + '> <i class="ln gt"></i>Giao thông đô thị</label></div>' + dnHtml + '</div>';
+        '<label class="mp-sdd-t"><input type="checkbox" id="gtGt"' + (onGT ? ' checked' : '') + '> <i class="ln gt"></i>Giao thông đô thị</label></div></details>' + dnHtml + '</details>' +
+        '<details class="lv1" data-lv="qhpk"' + lvOpen('qhpk', 1) + '><summary>Quy hoạch phân khu (QHPK)</summary><div class="gp-note">Chưa có dữ liệu — sẽ bổ sung dần.</div></details>' +
+        '<details class="lv1" data-lv="qhct"' + lvOpen('qhct', 1) + '><summary>Quy hoạch chi tiết (QHCT)</summary><div class="lv-ct"></div></details></div>';
+      d.addEventListener('toggle', (e) => { const t = e.target; if (t.dataset && t.dataset.lv) lsSet('lv_' + t.dataset.lv, t.open ? '1' : '0'); }, true);
       if (window.GPK) GPK.mount(d, map);
       L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
       /* thu/mở: điện thoại mặc định thu gọn, máy tính mặc định mở; nhớ lựa chọn trên từng máy */
