@@ -1196,7 +1196,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-legend { display: flex; gap: 6px 16px; flex-wrap: wrap; margin-bottom: 10px; font-size: 12px; color: #33415a; font-weight: 600; }
   .mp-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
 
-  /* ===== Danh sách: thẻ giống Tổng hợp dự án + bảng ===== */
+  /* ===== Danh sách: thẻ giống Weekly Report + bảng ===== */
   .lg-listbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin: 10px 0 2px; }
   .lg-viewtoggle { display: flex; gap: 6px; }
   .lg-steps {
@@ -1685,10 +1685,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
 <header class="top">
   <div class="header-textblock">
-    <h1>Báo cáo Dự án Quy hoạch<span class="t-brand"> Stellar</span></h1>
+    <h1>Corporate Report<span class="t-brand"> Stellar</span></h1>
     <div class="meta">
-      <span><span class="lu-l">Làm mới lúc </span><b id="lastUpdated">—</b></span>
-      <button class="refresh-btn" id="refreshBtn">↻ Làm mới<span class="rf-l"> ngay</span></button>
+      <span><span class="lu-l">LastUpdated </span><b id="lastUpdated">—</b></span>
+      <button class="refresh-btn" id="refreshBtn">↻ Refresh<span class="rf-l"> ngay</span></button>
       <span id="authBox" class="auth-box"></span>
     </div>
   </div>
@@ -1697,7 +1697,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
 <nav class="main-tabs" aria-label="Chuyển tab">
   <div class="inner" role="tablist">
-    <button class="main-tab active" data-main="projects" role="tab" aria-selected="true">▦ Tổng hợp dự án</button>
+    <button class="main-tab active" data-main="projects" role="tab" aria-selected="true">▦ Weekly Report</button>
     <button class="main-tab" data-main="legal" role="tab" aria-selected="false">⚖️ Pháp lý &amp; tiến độ</button>
   </div>
 </nav>
@@ -2384,9 +2384,9 @@ async function loadData(isManual) {
   } catch (err) {
     loadingEl.style.display = 'none';
     errorEl.style.display = 'block';
-    errorEl.textContent = 'Không tải được dữ liệu (' + err.message + '). Thử bấm Làm mới, hoặc kiểm tra lại kết nối mạng.';
+    errorEl.textContent = 'Không tải được dữ liệu (' + err.message + '). Thử bấm Refresh, hoặc kiểm tra lại kết nối mạng.';
   } finally {
-    if (isManual) { btn.disabled = false; btn.innerHTML = '↻ Làm mới<span class="rf-l"> ngay</span>'; }
+    if (isManual) { btn.disabled = false; btn.innerHTML = '↻ Refresh<span class="rf-l"> ngay</span>'; }
   }
 }
 
@@ -3220,7 +3220,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
   }
   const docBtns = (o) => { const h = btn(o.ctdt.pdf, '📄 CTĐT') + btn(o.qd.pdf, '📄 QĐPD') + (o.qd.has ? btn(o.banve, '📐 Bản vẽ') : ''); return h ? '<span class="btn-pair">' + h + '</span>' : ''; };
   function linkBtns(o) { return stlBtnsFor(o, o.dash); }
-  // thẻ: cùng khung với thẻ ở tab "Tổng hợp dự án"
+  // thẻ: cùng khung với thẻ ở tab "Weekly Report"
   function cardHtml(o, i) {
     const last = lastDate(o), col = ST[o.status].color;
     const tag = o.dash && o.dash.theloai ? '<span class="dot">•</span><span class="theloai-tag">' + esc(o.dash.theloai) + '</span>' : '';
