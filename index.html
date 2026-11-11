@@ -1646,6 +1646,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .adm-edit:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
   .adm-edit.pen { width: 30px; height: 30px; padding: 0; justify-content: center; font-size: 14px; border-radius: 50%; flex: 0 0 auto; }
   .stl-btns .adm-links { justify-self: end; margin-top: 1px; }
+  body.is-admin .stl-btns .drawing-btn[data-adm="folder"] { pointer-events: auto; cursor: pointer; border-style: dashed; border-color: #6c86b8; }
+  @media (min-width: 441px) { body.is-admin .stl-btns .drawing-btn[data-adm="folder"]::before { content: '📂 '; font-size: 10px; } }
   body.is-admin .stl-btns .drawing-btn.off { pointer-events: auto; cursor: pointer; color: var(--navy-2); border-color: #9fb0cc; background: #f3f6fb; }
   .refresh-btn.adm-on { background: #f5b942; color: #12233f; border-color: #f5b942; }
   .meta .adm-out { display: none; }
@@ -2766,12 +2768,21 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
     });
   }
 
+  /* Mở thư mục Drive của dự án (đúng thư mục con theo loại hồ sơ); chưa có thì Apps Script tự tạo. */
+  function openFolder(name, key) {
+    const w = window.open('', '_blank');   // mở tab ngay trong cú bấm để không bị chặn popup
+    toast('Opening Drive folder…');
+    api({ action: 'openFolder', name: name, key: key }).then((o) => {
+      if (w) { w.location.href = o.url; } else { location.href = o.url; }
+      if (o.created) toast('Folder created for ' + name);
+    }).catch((e) => { if (w) w.close(); toast('Could not open folder: ' + (e.message || e), true); });
+  }
   document.addEventListener('click', (e) => {
     const b = e.target.closest && e.target.closest('[data-adm]');
     if (!b || !ADM.admin || !ADM.on) return;
     e.preventDefault(); e.stopPropagation();
     const n = b.dataset.n; if (!n) return;
-    if (b.dataset.adm === 'report') openReport(n); else openLinks(n, b.dataset.fld || '');
+    if (b.dataset.adm === 'report') openReport(n); else if (b.dataset.adm === 'folder') openFolder(n, b.dataset.fld); else openLinks(n, b.dataset.fld || '');
   }, true);
 
   document.addEventListener('click', (e) => {
@@ -3451,9 +3462,10 @@ window.GPK = GPK;
     if (d.khoa) return lockBoxHtml(d.ten || (o && o.name) || '', d.nguoi || '');
     const name = o ? o.name : (d.ten || '');
     const U = stlU(o, d);
+    const FOLD = { dx: 1, ct: 1, bct: 1, qd: 1, bqd: 1 };   // 5 nút hồ sơ: ở chế độ Edit bấm vào sẽ mở thư mục Drive của loại hồ sơ đó
     const A = (u, t, tip, fld) => u
-      ? '<a class="drawing-btn" href="' + esc(u) + '" target="_blank" rel="noopener" title="' + tip + '">' + t + '</a>'
-      : '<span class="drawing-btn off"' + (fld ? ' data-adm="links" data-fld="' + fld + '" data-n="' + esc(name) + '"' : '') + ' aria-disabled="true" title="' + tip + ' — chưa có">' + t + '</span>';
+      ? '<a class="drawing-btn" href="' + esc(u) + '" target="_blank" rel="noopener" title="' + tip + '"' + (fld && FOLD[fld] ? ' data-adm="folder" data-fld="' + fld + '" data-n="' + esc(name) + '"' : '') + '>' + t + '</a>'
+      : '<span class="drawing-btn off"' + (fld ? ' data-adm="' + (FOLD[fld] ? 'folder' : 'links') + '" data-fld="' + fld + '" data-n="' + esc(name) + '"' : '') + ' aria-disabled="true" title="' + tip + ' — chưa có">' + t + '</span>';
     const B = (on, t, key, tip) => on
       ? '<button type="button" class="drawing-btn" data-stl="' + key + '" data-n="' + esc(name) + '" title="' + tip + '">' + t + '</button>'
       : '<span class="drawing-btn off" aria-disabled="true" title="' + tip + ' — chưa có">' + t + '</span>';
