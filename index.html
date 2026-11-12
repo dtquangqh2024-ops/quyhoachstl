@@ -1717,10 +1717,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     body:not(.mp-fs-on) #mpLeaf { height: calc(100vh - 150px); height: calc(100dvh - 150px); min-height: 520px; }
     /* Tab Ban do: ca tieu de, thanh tab va noi dung cung tran het chieu ngang, thang le voi ban do */
     body.lg-map-on { --page-w: 100vw; }
-    .mp-tools.mp-tools-in { position: absolute; z-index: 801; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; padding: 3px; background: rgba(255,255,255,.96); border-radius: 8px; box-shadow: 0 1px 6px rgba(0,0,0,.3); }
-    .mp-tools.mp-tools-in .chip { flex: none; padding: 5px 10px; white-space: nowrap; }
-    .mp-tools.mp-tools-in i.e { display: inline; }
-    body.mp-fs-on .mp-tools.mp-tools-in { top: 10px; }
+
     .mp-box.mp-2p .mp-left { display: block; position: absolute; z-index: 800; top: 0; left: 0; bottom: 0; width: 300px; overflow: auto; background: rgba(255,255,255,.97); border-right: 1px solid var(--line); box-shadow: 2px 0 8px rgba(0,0,0,.15); }
     .mp-left .mp-sdd { width: auto; border: 0; box-shadow: none; background: transparent; padding: 10px 12px; }
     .mp-left .mp-sdd-in { max-height: none; overflow: visible; }
@@ -1737,8 +1734,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
     .mp-layout:has(.mp-box.r-off) .mp-side { display: none; }
     .mp-box.r-off .mp-ptg-r { right: 0; }
     body:not(.mp-fs-on) .mp-box.r-off .leaflet-top.leaflet-right, body:not(.mp-fs-on) .mp-box.r-off .leaflet-bottom.leaflet-right { right: 18px; }
-    body.mp-fs-on .mp-box.mp-2p .leaflet-top.leaflet-left { left: 308px; }
-    body.mp-fs-on .mp-box.l-off .leaflet-top.leaflet-left { left: 18px; }
+    body.mp-fs-on .mp-box.mp-2p .leaflet-top.leaflet-left, body.mp-fs-on .mp-box.mp-2p .leaflet-bottom.leaflet-left { left: 308px; }
+    body.mp-fs-on .mp-box.l-off .leaflet-top.leaflet-left, body.mp-fs-on .mp-box.l-off .leaflet-bottom.leaflet-left { left: 18px; }
     body.mp-fs-on .mp-box.mp-2p .mp-left { top: 54px; }
     /* Toan man hinh: bang phai neo sat mep phai giong bang trai, thu/mo bang nut ▶ */
     body.mp-fs-on .mp-side, body.mp-fs-on.mp-list-open .mp-side { display: block; position: fixed; z-index: 51; top: 54px; right: 0; bottom: 0; width: 340px; height: auto; max-height: none; min-height: 0; overflow: auto; border: 0; border-left: 1px solid var(--line); border-radius: 0; background: rgba(255,255,255,.97); box-shadow: -2px 0 8px rgba(0,0,0,.15); }
@@ -1754,6 +1751,26 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-gpk .gp-sub label { display: flex; gap: 5px; align-items: flex-start; }
   .mp-gpk .gp-sub small { margin-left: auto; color: var(--muted); }
 
+
+  /* Thanh che do xem trong ban do: may tinh = tren giua; iPad/dien thoai = duoi giua (tranh nut lop, nut toan man hinh) */
+  .mp-tools.mp-tools-in { position: absolute; z-index: 801; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; padding: 3px; margin: 0; border: 0; background: rgba(255,255,255,.96); border-radius: 8px; box-shadow: 0 1px 6px rgba(0,0,0,.3); }
+  .mp-tools.mp-tools-in #mpBase { display: contents; }
+  .mp-tools.mp-tools-in .chip { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; white-space: nowrap; }
+  .mp-tools.mp-tools-in i.e { display: inline; font-style: normal; }
+  .mp-tools.mp-tools-in #mpBase .chip:first-child { margin-left: 6px; }
+  .mp-sdd-bs, body.mp-fs-on .mp-sdd-bs { display: none !important; }
+  @media (max-width: 899px) {
+    .mp-tools.mp-tools-in { top: auto; bottom: 46px; }
+    body.mp-fs-on .mp-tools.mp-tools-in { bottom: calc(46px + var(--sab, 0px)); }
+    /* chu thich nguon anh: 1 dong, khong de len thanh cong cu */
+    #mpBox .leaflet-control-attribution { max-width: calc(100vw - 24px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 9px; line-height: 14px; }
+    .mp-tools.mp-tools-in .chip { padding: 6px 9px; font-size: 12.5px; }
+  }
+  @media (max-width: 599px) {
+    .mp-tools.mp-tools-in .t { display: none; }
+    .mp-tools.mp-tools-in .chip { padding: 6px 0; width: 38px; justify-content: center; font-size: 16px; }
+    .mp-tools.mp-tools-in { bottom: 48px; }
+  }
   /* QHPK Hà Nội */
   .mp-pk-lbl { white-space: nowrap; width: auto !important; height: auto !important; transform-origin: center; background: rgba(255,255,255,.85); border: 0; box-shadow: none; padding: 1px 4px; font: 700 11px/1.2 sans-serif; color: #1d2b44; border-radius: 3px; }
   .mp-pk-lbl::before { display: none; }
@@ -1885,9 +1902,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
           </div>
           <span class="sp"></span>
           <div class="mp-tools">
-            <button class="chip active" id="mpProv" title="Bật/tắt đường địa giới 34 tỉnh/thành"><i class="e">▦ </i>Địa giới</button>
-            <button class="chip" id="mpFit" title="Phóng vừa tất cả dự án"><i class="e">⤢ </i>Xem tất cả</button>
-            <span id="mpBase"><button class="chip" data-base="osm"><i class="e">🗺 </i>Bản đồ</button><button class="chip active" data-base="sat"><i class="e">🛰 </i>Vệ tinh</button><button class="chip" data-base="hyb" title="Ảnh vệ tinh kèm đường giao thông, tên địa danh"><i class="e">🛣 </i>Hybrid</button></span>
+            <button class="chip active" id="mpProv" title="Bật/tắt đường địa giới 34 tỉnh/thành"><i class="e">▦</i><span class="t">Địa giới</span></button>
+            <button class="chip" id="mpFit" title="Phóng vừa tất cả dự án"><i class="e">⤢</i><span class="t">Xem tất cả</span></button>
+            <span id="mpBase"><button class="chip" data-base="osm" title="Streets — bản đồ giao thông"><i class="e">🗺</i><span class="t">Streets</span></button><button class="chip active" data-base="sat" title="Satellite — ảnh vệ tinh"><i class="e">🛰</i><span class="t">Satellite</span></button><button class="chip" data-base="hyb" title="Hybrid — ảnh vệ tinh kèm đường và tên địa danh"><i class="e">🛣</i><span class="t">Hybrid</span></button></span>
           </div>
         </div>
         <div class="mp-stats" id="mpStats"></div>
@@ -4187,7 +4204,7 @@ window.QHPK = QHPK;
         '<div class="mp-sdd-ph">' + Object.keys(DN_PH).map((k) => '<button type="button" data-dp="' + k + '" class="' + (dnOffP.has(k) ? '' : 'on') + '" title="' + DN_PH[k] + '">' + (k === 'QHDH2050' ? '2050' : k) + '</button>').join('') + '</div>' +
         '<details class="mp-sdd-lg"><summary>Chú giải, lọc loại đất</summary><div class="mp-sdd-tools"><button type="button" data-dall="1">Hiện hết</button><button type="button" data-dall="0">Tắt hết</button></div>' + dnGroups + '</details>' +
         '<div class="mp-dn-go"><button type="button" id="dnGo">Xem Đà Nẵng</button></div>';
-      d.innerHTML = '<button type="button" class="mp-sdd-tg" title="Mở/thu bảng lớp quy hoạch"><span>🗺 Lớp quy hoạch</span><em></em><i></i></button><div class="mp-sdd-bs"><button type="button" data-fb="osm">🗺 Bản đồ</button><button type="button" data-fb="sat">🛰 Vệ tinh</button></div><div class="mp-sdd-in"><details class="lv1" data-lv="qhc"' + lvOpen('qhc', 1) + '><summary>Quy hoạch chung (QHC)</summary><details class="lv2 mp-hn" data-lv="hn"' + lvOpen('hn', 0) + '><summary><input type="checkbox" id="sddOn"' + (on ? ' checked' : '') + '><span>QHC Hà Nội</span></summary>' +
+      d.innerHTML = '<button type="button" class="mp-sdd-tg" title="Mở/thu bảng lớp quy hoạch"><span>🗺 Lớp quy hoạch</span><em></em><i></i></button><div class="mp-sdd-bs"><button type="button" data-fb="osm">🗺 Streets</button><button type="button" data-fb="sat">🛰 Satellite</button><button type="button" data-fb="hyb">🛣 Hybrid</button></div><div class="mp-sdd-in"><details class="lv1" data-lv="qhc"' + lvOpen('qhc', 1) + '><summary>Quy hoạch chung (QHC)</summary><details class="lv2 mp-hn" data-lv="hn"' + lvOpen('hn', 0) + '><summary><input type="checkbox" id="sddOn"' + (on ? ' checked' : '') + '><span>QHC Hà Nội</span></summary>' +
         '<div class="mp-sdd-b"><div class="mp-sdd-r"><span>Độ đậm</span><input type="range" id="sddOp" min="10" max="100" step="5" value="' + op + '"><b id="sddOpV">' + op + '%</b></div>' +
         '<div class="mp-sdd-ph">' + Object.keys(SDD_PH).map((k) => '<button type="button" data-p="' + k + '" class="' + (offP.has(k) ? '' : 'on') + '" title="' + SDD_PH[k] + '">' + k + '</button>').join('') + '</div>' +
         '<details class="mp-sdd-lg"><summary>Chú giải, lọc loại đất</summary><div class="mp-sdd-tools"><button type="button" data-all="1">Hiện hết</button><button type="button" data-all="0">Tắt hết</button></div>' + groups + '</details>' +
@@ -4243,11 +4260,12 @@ window.QHPK = QHPK;
       return d;
     };
     C.addTo(map);
+    /* Thanh che do xem (dia gioi, xem tat ca, Streets/Satellite/Hybrid) nam trong ban do o moi man hinh, ke ca toan man hinh */
+    { const tb = document.querySelector('#lgMap .mp-tools'), bx = document.getElementById('mpBox'); if (tb && bx) { tb.classList.add('mp-tools-in'); bx.appendChild(tb); L.DomEvent.disableClickPropagation(tb); L.DomEvent.disableScrollPropagation(tb); } }
     /* Man hinh rong: ban do tran ca khung, danh muc lop co dinh ben trai, thong tin du an co dinh ben phai */
     if (window.matchMedia('(min-width: 900px)').matches && document.getElementById('mpLeft')) {
       const lp = document.getElementById('mpLeft'), box = document.getElementById('mpBox');
       lp.appendChild(C.getContainer()); L.DomEvent.disableScrollPropagation(lp); L.DomEvent.disableClickPropagation(lp);
-      const tb = document.querySelector('#lgMap .mp-tools'); if (tb) { tb.classList.add('mp-tools-in'); box.appendChild(tb); L.DomEvent.disableClickPropagation(tb); }
       if (LM.sddOpen) LM.sddOpen(true, false);
       box.classList.add('mp-2p');
       const tg = (cls, btn, a, b) => { const off = box.classList.toggle(cls); btn.textContent = off ? b : a; lsSet(cls, off ? '1' : '0'); };
