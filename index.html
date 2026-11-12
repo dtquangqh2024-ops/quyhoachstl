@@ -1714,17 +1714,23 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-ptg, .mp-left { display: none; }
   @media (min-width: 900px) {
     body:not(.mp-fs-on) .mp-layout { display: block; position: relative; }
-    body:not(.mp-fs-on) #mpLeaf { height: calc(100vh - 200px); height: calc(100dvh - 200px); min-height: 520px; }
-    .mp-box.mp-2p .mp-left { display: block; position: absolute; z-index: 800; top: 10px; left: 10px; bottom: 10px; width: 290px; overflow: auto; background: rgba(255,255,255,.97); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,.22); }
+    body:not(.mp-fs-on) #mpLeaf { height: calc(100vh - 150px); height: calc(100dvh - 150px); min-height: 520px; }
+    /* Tab Ban do: ca tieu de, thanh tab va noi dung cung tran het chieu ngang, thang le voi ban do */
+    body.lg-map-on { --page-w: 100vw; }
+    .mp-tools.mp-tools-in { position: absolute; z-index: 801; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; padding: 3px; background: rgba(255,255,255,.96); border-radius: 8px; box-shadow: 0 1px 6px rgba(0,0,0,.3); }
+    .mp-tools.mp-tools-in .chip { flex: none; padding: 5px 10px; white-space: nowrap; }
+    .mp-tools.mp-tools-in i.e { display: inline; }
+    body.mp-fs-on .mp-tools.mp-tools-in { top: 10px; }
+    .mp-box.mp-2p .mp-left { display: block; position: absolute; z-index: 800; top: 0; left: 0; bottom: 0; width: 300px; overflow: auto; background: rgba(255,255,255,.97); border-right: 1px solid var(--line); box-shadow: 2px 0 8px rgba(0,0,0,.15); }
     .mp-left .mp-sdd { width: auto; border: 0; box-shadow: none; background: transparent; padding: 10px 12px; }
     .mp-left .mp-sdd-in { max-height: none; overflow: visible; }
     .mp-left .mp-sdd-tg i { display: none; }
-    body:not(.mp-fs-on) .mp-side { position: absolute; z-index: 800; top: 10px; right: 10px; bottom: 10px; width: 340px; height: auto; min-height: 0; overflow: auto; border-radius: 8px; background: rgba(255,255,255,.97); box-shadow: 0 2px 10px rgba(0,0,0,.22); }
+    body:not(.mp-fs-on) .mp-side { position: absolute; z-index: 800; top: 0; right: 0; bottom: 0; width: 340px; height: auto; min-height: 0; overflow: auto; border: 0; border-left: 1px solid var(--line); border-radius: 0 14px 14px 0; background: rgba(255,255,255,.97); box-shadow: -2px 0 8px rgba(0,0,0,.15); }
     .mp-box.mp-2p .mp-ptg { display: flex; align-items: center; justify-content: center; position: absolute; z-index: 801; top: 50%; width: 18px; height: 48px; margin-top: -24px; padding: 0; border: 1px solid var(--line); background: #fff; color: var(--navy); font-size: 10px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
     .mp-ptg-l { left: 300px; border-radius: 0 6px 6px 0; }
-    .mp-ptg-r { right: 350px; border-radius: 6px 0 0 6px; }
-    body:not(.mp-fs-on) .mp-box.mp-2p .leaflet-top.leaflet-left, body:not(.mp-fs-on) .mp-box.mp-2p .leaflet-bottom.leaflet-left { left: 300px; }
-    body:not(.mp-fs-on) .mp-box.mp-2p .leaflet-top.leaflet-right, body:not(.mp-fs-on) .mp-box.mp-2p .leaflet-bottom.leaflet-right { right: 350px; }
+    .mp-ptg-r { right: 340px; border-radius: 6px 0 0 6px; }
+    body:not(.mp-fs-on) .mp-box.mp-2p .leaflet-top.leaflet-left, body:not(.mp-fs-on) .mp-box.mp-2p .leaflet-bottom.leaflet-left { left: 308px; }
+    body:not(.mp-fs-on) .mp-box.mp-2p .leaflet-top.leaflet-right, body:not(.mp-fs-on) .mp-box.mp-2p .leaflet-bottom.leaflet-right { right: 348px; }
     .mp-box.l-off .mp-left { display: none; }
     .mp-box.l-off .mp-ptg-l { left: 0; }
     body:not(.mp-fs-on) .mp-box.l-off .leaflet-top.leaflet-left, body:not(.mp-fs-on) .mp-box.l-off .leaflet-bottom.leaflet-left { left: 18px; }
@@ -1739,6 +1745,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
   /* lớp GPKG: danh sách lớp con luôn hiện */
   .mp-gpk .gp-sub label { display: flex; gap: 5px; align-items: flex-start; }
   .mp-gpk .gp-sub small { margin-left: auto; color: var(--muted); }
+
+  /* QHPK Hà Nội */
+  .mp-pk-lbl { white-space: nowrap; width: auto !important; height: auto !important; transform-origin: center; background: rgba(255,255,255,.85); border: 0; box-shadow: none; padding: 1px 4px; font: 700 11px/1.2 sans-serif; color: #1d2b44; border-radius: 3px; }
+  .mp-pk-lbl::before { display: none; }
+  .lv-pk .pk-find { width: 100%; margin: 5px 0 2px; padding: 4px 6px; font: inherit; font-size: 11.5px; border: 1px solid var(--line); border-radius: 4px; }
+  .lv-pk .li small { margin-left: auto; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -1867,7 +1879,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
           <div class="mp-tools">
             <button class="chip active" id="mpProv" title="Bật/tắt đường địa giới 34 tỉnh/thành"><i class="e">▦ </i>Địa giới</button>
             <button class="chip" id="mpFit" title="Phóng vừa tất cả dự án"><i class="e">⤢ </i>Xem tất cả</button>
-            <span id="mpBase"><button class="chip" data-base="osm"><i class="e">🗺 </i>Bản đồ</button><button class="chip active" data-base="sat"><i class="e">🛰 </i>Vệ tinh</button></span>
+            <span id="mpBase"><button class="chip" data-base="osm"><i class="e">🗺 </i>Bản đồ</button><button class="chip active" data-base="sat"><i class="e">🛰 </i>Vệ tinh</button><button class="chip" data-base="hyb" title="Ảnh vệ tinh kèm đường giao thông, tên địa danh"><i class="e">🛣 </i>Hybrid</button></span>
           </div>
         </div>
         <div class="mp-stats" id="mpStats"></div>
@@ -2965,7 +2977,8 @@ const GPK = (() => {
     if (!d.st && !d.fillBy && !d.pt) d.st = l.t === 'A' ? { color: '#475569', weight: 1, fillColor: '#cbd5e1', fillOpacity: 0.5 } : { color: '#475569', weight: 1.2 };
     if (l.t === 'P' && !d.pt) d.pt = '#2563eb';
     if (d.z == null) d.z = l.t === 'A' ? 20 : l.t === 'L' ? 50 : 70;
-    d.on = 1;
+    /* Mac dinh chi bat: ranh, su dung dat, giao thong, chi gioi (quy hoach). Hien trang va HTKT khac: tat, nam trong "Lop khac" */
+    d.on = !/^HienTrang/.test(l.k) && /^(RanhGioiQuyHoach_A|ChucNangSuDungDat_A|MangLuoiGiaoThongDuongBo_[AL]|BoViaDaiPhanCach_L|ChiGioiDuongDo_L|ChiGioiXayDung_L|PhanKhuQuyHoach_A|PhanOQuyHoach_A)$/.test(b) ? 1 : 0;
     return d;
   };
   /* Mau du phong khi lo dat khong co truong mauHienThi (GPKG cu): bo mau kieu cong quy hoach TP.HCM theo phanLoai */
@@ -3006,7 +3019,7 @@ const GPK = (() => {
     if (S.cache[rec.id]) return S.cache[rec.id];
     const data = await get('getLayer&id=' + encodeURIComponent(rec.id));
     /* thu tu ve: lop z nho ve truoc (nam duoi); ranh gioi ve sau cung, nam tren */
-    const layers = data.layers.map((l) => ({ l, d: def(l), gj: null, on: true })).sort((a, b) => (a.d.z - b.d.z) || (a.l.k < b.l.k ? -1 : 1));
+    const layers = data.layers.map((l) => { const d = def(l); return { l, d, gj: null, on: !!d.on }; }).sort((a, b) => (a.d.z - b.d.z) || (a.l.k < b.l.k ? -1 : 1));
     return (S.cache[rec.id] = { data, layers });
   }
   function draw(rec, c) {
@@ -3027,7 +3040,8 @@ const GPK = (() => {
         const c = S.cache[r.id], on = !!S.shown[r.id];
         const li = (x, i) => '<label><input type="checkbox" data-i="' + i + '"' + (x.on ? ' checked' : '') + '> ' + E(x.d.n) + ' <small>' + x.l.n + '</small></label>';
         /* danh sach lop: lop tren cung (ranh) dau tien, giong thu tu nhin tren ban do */
-        const sub = on && c ? '<div class="gp-sub">' + c.layers.map((x, i) => [x, i]).reverse().map(([x, i]) => li(x, i)).join('') + '</div>' : '';
+        const ds = c ? c.layers.map((x, i) => [x, i]).reverse() : [], chinh = ds.filter(([x]) => x.d.on), khac = ds.filter(([x]) => !x.d.on);
+        const sub = on && c ? '<div class="gp-sub">' + chinh.map(([x, i]) => li(x, i)).join('') + (khac.length ? '<details class="gp-more"' + (S.more[r.id] ? ' open' : '') + '><summary>Lớp khác (' + khac.length + ')</summary>' + khac.map(([x, i]) => li(x, i)).join('') + '</details>' : '') + '</div>' : '';
         return '<div class="gp" data-id="' + E(r.id) + '"><div class="gp-h"><label><input type="checkbox" class="gp-all"' + (on ? ' checked' : '') + '> 📁 <b>' + E(r.project) + '</b></label><span><button type="button" class="gp-x" title="Show / hide layers">' + (S.open[r.id] ? '▾' : '▸') + '</button><button type="button" class="gp-zoom" title="Zoom to project">⌖</button><button type="button" class="gp-del adm-only" title="Delete this layer set">🗑</button></span></div>' + (S.open[r.id] ? '<div class="gp-meta">' + r.n + ' features · ' + ago(r.updated) + '</div>' + (on && c ? sub : '<div class="gp-note">' + (on ? 'Loading…' : 'Tick the project to show its layers.') + '</div>') : '') + '</div>';
       }).join('');
     root.querySelector('.gp-list').innerHTML = body;
@@ -3111,6 +3125,90 @@ const GPK = (() => {
   return { mount, reload, convert: gpkConvert };
 })();
 window.GPK = GPK;
+
+/* ===== QHPK Hà Nội: ranh giới các phân khu (QHC Thủ đô) — file qhpk_hanoi.json đặt cạnh index.html ===== */
+const QHPK = (() => {
+  const URL_DL = 'qhpk_hanoi.json';
+  const E = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const lg = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
+  const ls = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* bo qua */ } };
+  const S = { data: null, map: null, el: null, on: lg('pkOn', true), kcn: lg('pkKcn', false), op: lg('pkOp', 0.18), tat: lg('pkTat', {}), grp: null, lbl: null, ren: null };
+  const ok = (f) => f.properties.nhom === 'Khu công nghiệp' ? S.kcn : !S.tat[f.properties.nhom];
+  /* diem trong da giac (ray casting) */
+  const inRing = (x, y, r) => { let c = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const a = r[i], b = r[j]; if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
+  const inPoly = (x, y, p) => inRing(x, y, p[0]) && !p.slice(1).some((h) => inRing(x, y, h));
+  const inGeom = (x, y, g) => g.type === 'Polygon' ? inPoly(x, y, g.coordinates) : g.type === 'MultiPolygon' ? g.coordinates.some((p) => inPoly(x, y, p)) : false;
+  const tim = (ll) => { if (!S.data || !S.on) return null; const x = ll.lng, y = ll.lat;
+    const k = S.kcn && S.data.kcn.features.find((f) => inGeom(x, y, f.geometry)); if (k) return k;
+    return S.data.pk.features.find((f) => ok(f) && inGeom(x, y, f.geometry)) || null; };
+  const tam = (f) => { const b = L.geoJSON(f).getBounds(); return b.getCenter(); };
+  const style = (f) => ({ color: f.properties.mau || '#555', weight: 1.6, opacity: 0.95, fillColor: f.properties.mau || '#555', fillOpacity: S.op, dashArray: f.properties.nhom === 'Khu công nghiệp' ? '4 3' : null });
+  function ve() {
+    const m = S.map; if (!m || !S.data) return;
+    if (S.grp) m.removeLayer(S.grp); if (S.lbl) m.removeLayer(S.lbl);
+    const pn = m.getPane('pkPane'); if (pn) pn.style.display = S.on ? '' : 'none';
+    if (!S.on) { S.grp = S.lbl = null; return; }
+    const fs = S.data.pk.features.filter(ok).concat(S.kcn ? S.data.kcn.features : []);
+    S.grp = L.geoJSON({ type: 'FeatureCollection', features: fs }, { pane: 'pkPane', renderer: S.ren, interactive: false, style }).addTo(m);
+    S.lbl = L.layerGroup(fs.map((f) => L.marker(tam(f), { pane: 'pkPane', interactive: false, keyboard: false, icon: L.divIcon({ className: 'mp-pk-lbl', html: E(f.properties.ma), iconSize: null, iconAnchor: [14, 8] }) })));
+    nhan();
+  }
+  function nhan() { const m = S.map; if (!m || !S.lbl) return; const z = m.getZoom() >= 11; if (z && !m.hasLayer(S.lbl)) S.lbl.addTo(m); else if (!z && m.hasLayer(S.lbl)) m.removeLayer(S.lbl); }
+  function render() {
+    const el = S.el; if (!el) return;
+    if (!S.data) return;
+    const dem = {}; S.data.pk.features.forEach((f) => { dem[f.properties.nhom] = (dem[f.properties.nhom] || 0) + 1; });
+    const nh = S.data.nhom.filter((n) => dem[n.ten]);
+    el.innerHTML =
+      '<label class="li"><input type="checkbox" data-pk="on"' + (S.on ? ' checked' : '') + '><i style="background:#A55200"></i><b>Phân khu Hà Nội</b><small>' + S.data.pk.features.length + '</small></label>' +
+      '<label class="li"><input type="checkbox" data-pk="kcn"' + (S.kcn ? ' checked' : '') + '><i style="background:#B4A0E6"></i>Khu công nghiệp<small>' + S.data.kcn.features.length + '</small></label>' +
+      (S.on ? '<div class="gp-sub"><div class="gp-note" style="display:flex;gap:6px;align-items:center">Độ đậm <input type="range" min="0" max="0.6" step="0.03" value="' + S.op + '" data-pk="op" style="flex:1"></div>' +
+        '<input class="pk-find" placeholder="Tìm mã phân khu (vd: A1-1, GN…)" data-pk="find">' +
+        '<div class="gp-note"><a href="#" data-pk="all">Hiện hết</a> · <a href="#" data-pk="none">Tắt hết</a></div>' +
+        nh.map((n) => '<label class="li"><input type="checkbox" data-nh="' + E(n.ten) + '"' + (S.tat[n.ten] ? '' : ' checked') + '><i style="background:' + E(n.mau) + '"></i>' + E(n.ten) + '<small>' + dem[n.ten] + '</small></label>').join('') + '</div>' : '') +
+      '<div class="gp-note">Nguồn: ' + E(S.data.nguon) + '. Bấm vào bản đồ để xem phân khu.</div>';
+  }
+  function bind() {
+    const el = S.el;
+    el.addEventListener('change', (ev) => { const t = ev.target, k = t.dataset.pk;
+      if (k === 'on') { S.on = t.checked; ls('pkOn', S.on); }
+      else if (k === 'kcn') { S.kcn = t.checked; ls('pkKcn', S.kcn); if (S.kcn && !S.on) { S.on = true; ls('pkOn', true); } }
+      else if (t.dataset.nh != null) { if (t.checked) delete S.tat[t.dataset.nh]; else S.tat[t.dataset.nh] = 1; ls('pkTat', S.tat); }
+      else return;
+      render(); ve(); });
+    el.addEventListener('input', (ev) => { const t = ev.target;
+      if (t.dataset.pk === 'op') { S.op = +t.value; ls('pkOp', S.op); if (S.grp) S.grp.setStyle(style); } });
+    el.addEventListener('click', (ev) => { const k = ev.target.dataset && ev.target.dataset.pk; if (k !== 'all' && k !== 'none') return; ev.preventDefault();
+      S.tat = {}; if (k === 'none') S.data.nhom.forEach((n) => { S.tat[n.ten] = 1; }); ls('pkTat', S.tat); render(); ve(); });
+    el.addEventListener('keydown', (ev) => { const t = ev.target; if (t.dataset.pk !== 'find' || ev.key !== 'Enter') return;
+      const q = t.value.trim().toUpperCase(); if (!q) return;
+      const f = S.data.pk.features.concat(S.data.kcn.features).find((x) => String(x.properties.ma).toUpperCase() === q) || S.data.pk.features.concat(S.data.kcn.features).find((x) => String(x.properties.ma).toUpperCase().indexOf(q) === 0);
+      if (!f) { t.style.borderColor = '#d33'; return; } t.style.borderColor = '';
+      if (f.properties.nhom === 'Khu công nghiệp' && !S.kcn) { S.kcn = true; ls('pkKcn', true); }
+      else if (S.tat[f.properties.nhom]) { delete S.tat[f.properties.nhom]; ls('pkTat', S.tat); }
+      if (!S.on) { S.on = true; ls('pkOn', true); }
+      render(); ve(); S.map.fitBounds(L.geoJSON(f).getBounds(), (window.mpPad || ((o) => o))({ padding: [30, 30] }));
+      setTimeout(() => popup(tam(f)), 400); });
+  }
+  function noiDung(f) { const p = f.properties;
+    return '<b><i style="background:' + E(p.mau) + '"></i>' + (p.nhom === 'Khu công nghiệp' ? 'KCN ' : 'Phân khu ') + E(p.ma) + '</b>' +
+      '<div>' + E(p.nhom) + '</div>' + (p.ha ? '<div>Diện tích ≈ ' + Number(p.ha).toLocaleString('vi-VN') + ' ha</div>' : '') +
+      (p.ghiChu ? '<div>' + E(p.ghiChu) + '</div>' : '') + '<div style="color:#888;font-size:11px">Ranh QHPK theo QHC Thủ đô Hà Nội</div>'; }
+  function popup(ll) { const f = tim(ll); if (!f || !S.map) return false;
+    L.popup({ className: 'mp-sdd-pop', maxWidth: 260 }).setLatLng(ll).setContent(noiDung(f)).openOn(S.map); return true; }
+  function dong(ll) { const f = tim(ll); return f ? '<div>' + (f.properties.nhom === 'Khu công nghiệp' ? 'KCN' : 'Phân khu') + ': <b>' + E(f.properties.ma) + '</b> (' + E(f.properties.nhom) + ')</div>' : ''; }
+  function mount(el, map) {
+    if (!el || !map) return; S.el = el; S.map = map;
+    if (!map.getPane('pkPane')) { map.createPane('pkPane'); map.getPane('pkPane').style.zIndex = 260; S.ren = L.svg({ pane: 'pkPane' }); map.on('zoomend', nhan); }
+    const nb = !el._pkB; el._pkB = 1; const bd = () => { if (nb) bind(); };
+    if (S.data) { render(); bd(); ve(); return; }
+    fetch(URL_DL, { cache: 'no-cache' }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then((d) => { S.data = d; render(); bd(); ve(); })
+      .catch(() => { el.innerHTML = '<div class="gp-note">Chưa có dữ liệu — đặt file <b>qhpk_hanoi.json</b> cùng thư mục với index.html.</div>'; });
+  }
+  return { mount, popup, dong };
+})();
+window.QHPK = QHPK;
 </script>
 <script>
 /* ===== Module Pháp lý & tiến độ (đọc sheet thứ 2 qua Apps Script: action=listLegal) ===== */
@@ -3366,6 +3464,8 @@ window.GPK = GPK;
     $('lgList').style.display = which === 'list' ? '' : 'none';
     $('lgTimeline').style.display = which === 'timeline' ? '' : 'none';
     $('lgMap').style.display = which === 'map' ? '' : 'none';
+    document.body.classList.toggle('lg-map-on', which === 'map');
+    if (which === 'map' && LM.map) setTimeout(() => LM.map.invalidateSize(), 60);
     renderAll();
     if (push !== false) updateHash();
   }
@@ -3906,6 +4006,13 @@ window.GPK = GPK;
     addScaleBar(map);
     LM.tiles.osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
     LM.tiles.sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Ảnh: Esri, Maxar, Earthstar Geographics' });
+    /* Hybrid: anh ve tinh + duong giao thong + ten dia danh (lop tham chieu Esri) */
+    LM.tiles.hyb = L.layerGroup([
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Ảnh: Esri, Maxar, Earthstar Geographics' }),
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, pane: 'shadowPane', opacity: 0.9 }),
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, pane: 'shadowPane' })
+    ]);
+    try { const b0 = localStorage.getItem('mpBaseMap'); if (b0 && LM.tiles[b0]) LM.base = b0; } catch (e) { /* bo qua */ }
     LM.tiles[LM.base].addTo(map);
     buildSdd(map);
     LM.gProv = L.layerGroup(); LM.gProvLbl = L.layerGroup();
@@ -3935,7 +4042,9 @@ window.GPK = GPK;
   const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
   function buildSdd(map) {
     if (typeof protomapsL === 'undefined') return;
-    map.createPane('sddPane'); map.getPane('sddPane').style.zIndex = 250;
+    map.createPane('sddPane'); map.getPane('sddPane').style.zIndex = 250; map.createPane('dnPane'); map.getPane('dnPane').style.zIndex = 251;
+    /* tắt lớp pmtiles: ẩn luôn pane (protomaps-leaflet còn vẽ nốt ô ảnh đang dở sau khi gỡ lớp -> 'lưu hình') */
+    const paneOn = (n, v) => { const p = map.getPane(n); if (p) p.style.display = v ? '' : 'none'; };
     let on = lsGet('sddOn', '1') === '1', op = +lsGet('sddOp', '60') || 60;
     const offL = new Set(JSON.parse(lsGet('sddOffL', '[]') || '[]'));
     const offP = new Set(JSON.parse(lsGet('sddOffP', '[]') || '[]'));
@@ -3949,14 +4058,14 @@ window.GPK = GPK;
         symbolizer: new protomapsL.PolygonSymbolizer({ fill: (z, f) => f.props.c, opacity: 1, stroke: '#ffffff', width: (z) => (z >= 15 ? 0.6 : 0) })
       }]
     });
-    if (on) LM.sdd.addTo(map);
+    if (on) LM.sdd.addTo(map); else paneOn('sddPane', false);
     /* lớp QHC Đà Nẵng: bật/tắt, độ đậm, giai đoạn, loại đất riêng */
     let dnOn = lsGet('dnOn', '1') === '1', dnOp = +lsGet('dnOp', '60') || 60;
     const dnOffL = new Set(JSON.parse(lsGet('dnOffL', '[]') || '[]'));
     const dnOffP = new Set(JSON.parse(lsGet('dnOffP', '[]') || '[]'));
     const dnShow = (p) => !dnOffL.has(p.l) && !dnOffP.has(p.p);
     LM.dn = protomapsL.leafletLayer({
-      url: DN_URL, pane: 'sddPane', maxDataZoom: 15, minZoom: 9, bounds: DN_BOUNDS, opacity: dnOp / 100,
+      url: DN_URL, pane: 'dnPane', maxDataZoom: 15, minZoom: 9, bounds: DN_BOUNDS, opacity: dnOp / 100,
       attribution: 'QHC Đà Nẵng (tham khảo)',
       paintRules: [{
         dataLayer: 'sdd',
@@ -3964,7 +4073,7 @@ window.GPK = GPK;
         symbolizer: new protomapsL.PolygonSymbolizer({ fill: (z, f) => f.props.c, opacity: 1, stroke: '#ffffff', width: (z) => (z >= 15 ? 0.6 : 0) })
       }]
     });
-    if (dnOn) LM.dn.addTo(map);
+    if (dnOn) LM.dn.addTo(map); else paneOn('dnPane', false);
     const dnRefresh = () => { lsSet('dnOffL', JSON.stringify([...dnOffL])); lsSet('dnOffP', JSON.stringify([...dnOffP])); if (LM.dn.rerenderTiles) LM.dn.rerenderTiles(); };
     /* lớp đường sắt đô thị + giao thông (qhgt.pmtiles, QHC tầm nhìn 100 năm) */
     let onDS = lsGet('gtDs', '0') === '1', onGT = lsGet('gtGt', '0') === '1';
@@ -3981,12 +4090,13 @@ window.GPK = GPK;
       ]
     });
     if (onDS || onGT) LM.gtl.addTo(map);
-    const gtRefresh = () => { lsSet('gtDs', onDS ? '1' : '0'); lsSet('gtGt', onGT ? '1' : '0'); if (onDS || onGT) { if (!map.hasLayer(LM.gtl)) LM.gtl.addTo(map); else if (LM.gtl.rerenderTiles) LM.gtl.rerenderTiles(); } else if (map.hasLayer(LM.gtl)) map.removeLayer(LM.gtl); };
+    const gtRefresh = () => { lsSet('gtDs', onDS ? '1' : '0'); lsSet('gtGt', onGT ? '1' : '0'); paneOn('gtPane', onDS || onGT); if (onDS || onGT) { if (!map.hasLayer(LM.gtl)) LM.gtl.addTo(map); else if (LM.gtl.rerenderTiles) LM.gtl.rerenderTiles(); } else if (map.hasLayer(LM.gtl)) map.removeLayer(LM.gtl); };
     const refresh = () => { lsSet('sddOffL', JSON.stringify([...offL])); lsSet('sddOffP', JSON.stringify([...offP])); if (LM.sdd.rerenderTiles) LM.sdd.rerenderTiles(); };
     // bấm vào bản đồ -> hiện loại đất tại điểm bấm
     map.on('click', (e) => {
       if (map._mpMeasuring) return;   // đang đo khoảng cách/diện tích
-      if (Date.now() - (LM.lastPick || 0) < 400 || map.getZoom() < 11) return;
+      if (Date.now() - (LM.lastPick || 0) < 400) return;
+      if (map.getZoom() < 11) { if (window.QHPK) QHPK.popup(e.latlng); return; }
       if ((onDS || onGT) && map.hasLayer(LM.gtl)) {
         let gh = null;
         try {
@@ -4014,16 +4124,16 @@ window.GPK = GPK;
           return;
         }
       }
-      if (!on || !map.hasLayer(LM.sdd)) return;
+      if (!on || !map.hasLayer(LM.sdd)) { if (window.QHPK) QHPK.popup(e.latlng); return; }
       let hit = null;
       try {
         const res = LM.sdd.queryTileFeaturesDebug(e.latlng.lng, e.latlng.lat);
         res.forEach((arr) => { arr.forEach((x) => { if (x.layerName === 'sdd' && show(x.feature.props)) hit = x.feature.props; }); });
       } catch (err) { hit = null; }
-      if (!hit) return;
+      if (!hit) { if (window.QHPK) QHPK.popup(e.latlng); return; }
       L.popup({ className: 'mp-sdd-pop', maxWidth: 260 }).setLatLng(e.latlng).setContent(
         '<b><i style="background:' + esc(hit.c) + '"></i>' + esc(hit.l) + '</b>' +
-        '<div>' + esc(SDD_GRP[hit.g] || '') + ' · ' + esc(SDD_PH[hit.p] || 'Khác') + '</div>' +
+        '<div>' + esc(SDD_GRP[hit.g] || '') + ' · ' + esc(SDD_PH[hit.p] || 'Khác') + '</div>' + (window.QHPK ? QHPK.dong(e.latlng) : '') +
         (hit.ha ? '<div>Diện tích ô vẽ: ' + String(hit.ha).replace('.', ',') + ' ha</div>' : '') +
         '<div class="k">Layer CAD: ' + esc(hit.cad) + '</div>').openOn(map);
     });
@@ -4053,10 +4163,11 @@ window.GPK = GPK;
         '</div>' +
         '<div class="mp-gt"><label class="mp-sdd-t"><input type="checkbox" id="gtDs"' + (onDS ? ' checked' : '') + '> <i class="ln ds"></i>Đường sắt đô thị</label>' +
         '<label class="mp-sdd-t"><input type="checkbox" id="gtGt"' + (onGT ? ' checked' : '') + '> <i class="ln gt"></i>Giao thông đô thị</label></div></details>' + dnHtml + '</details>' +
-        '<details class="lv1" data-lv="qhpk"' + lvOpen('qhpk', 1) + '><summary>Quy hoạch phân khu (QHPK)</summary><div class="gp-note">Chưa có dữ liệu — sẽ bổ sung dần.</div></details>' +
+        '<details class="lv1" data-lv="qhpk"' + lvOpen('qhpk', 1) + '><summary>Quy hoạch phân khu (QHPK)</summary><div class="lv-pk"><div class="gp-note">Đang tải…</div></div></details>' +
         '<details class="lv1" data-lv="qhct"' + lvOpen('qhct', 1) + '><summary>Quy hoạch chi tiết (QHCT)</summary><div class="lv-ct"></div></details></div>';
       d.addEventListener('toggle', (e) => { const t = e.target; if (t.dataset && t.dataset.lv) lsSet('lv_' + t.dataset.lv, t.open ? '1' : '0'); }, true);
       if (window.GPK) GPK.mount(d, map);
+      if (window.QHPK) QHPK.mount(d.querySelector('.lv-pk'), map);
       L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
       /* thu/mở: điện thoại mặc định thu gọn, máy tính mặc định mở; nhớ lựa chọn trên từng máy */
       d.querySelectorAll('.mp-sdd-bs button').forEach((b) => { b.classList.toggle('on', b.dataset.fb === LM.base); b.addEventListener('click', () => setBase(b.dataset.fb)); });
@@ -4077,7 +4188,7 @@ window.GPK = GPK;
       d.addEventListener('change', updTg);
       d.querySelector('#gtDs').addEventListener('change', (e) => { onDS = e.target.checked; gtRefresh(); });
       d.querySelector('#gtGt').addEventListener('change', (e) => { onGT = e.target.checked; gtRefresh(); });
-      d.querySelector('#sddOn').addEventListener('change', (e) => { on = e.target.checked; lsSet('sddOn', on ? '1' : '0'); if (on) LM.sdd.addTo(map); else { map.removeLayer(LM.sdd); map.closePopup(); } d.classList.toggle('off', !on); });
+      d.querySelector('#sddOn').addEventListener('change', (e) => { on = e.target.checked; lsSet('sddOn', on ? '1' : '0'); paneOn('sddPane', on); if (on) LM.sdd.addTo(map); else { map.removeLayer(LM.sdd); map.closePopup(); } d.classList.toggle('off', !on); });
       d.querySelector('#sddOp').addEventListener('input', (e) => { op = +e.target.value; LM.sdd.setOpacity(op / 100); d.querySelector('#sddOpV').textContent = op + '%'; lsSet('sddOp', String(op)); });
       d.querySelectorAll('.mp-sdd-ph button[data-p]').forEach((b) => b.addEventListener('click', () => { const k = b.dataset.p; if (offP.has(k)) offP.delete(k); else offP.add(k); b.classList.toggle('on', !offP.has(k)); refresh(); }));
       d.querySelectorAll('.mp-sdd-lg input[data-l]').forEach((c) => c.addEventListener('change', () => { if (c.checked) offL.delete(c.dataset.l); else offL.add(c.dataset.l); refresh(); }));
@@ -4088,7 +4199,7 @@ window.GPK = GPK;
       }));
       d.classList.toggle('off', !on);
       const dnBox = d.querySelector('.mp-dn');
-      d.querySelector('#dnOn').addEventListener('change', (e) => { dnOn = e.target.checked; lsSet('dnOn', dnOn ? '1' : '0'); if (dnOn) LM.dn.addTo(map); else { map.removeLayer(LM.dn); map.closePopup(); } dnBox.classList.toggle('off', !dnOn); });
+      d.querySelector('#dnOn').addEventListener('change', (e) => { dnOn = e.target.checked; lsSet('dnOn', dnOn ? '1' : '0'); paneOn('dnPane', dnOn); if (dnOn) LM.dn.addTo(map); else { map.removeLayer(LM.dn); map.closePopup(); } dnBox.classList.toggle('off', !dnOn); });
       d.querySelector('#dnOp').addEventListener('input', (e) => { dnOp = +e.target.value; LM.dn.setOpacity(dnOp / 100); d.querySelector('#dnOpV').textContent = dnOp + '%'; lsSet('dnOp', String(dnOp)); });
       d.querySelectorAll('.mp-sdd-ph button[data-dp]').forEach((b) => b.addEventListener('click', () => { const k = b.dataset.dp; if (dnOffP.has(k)) dnOffP.delete(k); else dnOffP.add(k); b.classList.toggle('on', !dnOffP.has(k)); dnRefresh(); }));
       d.querySelectorAll('.mp-sdd-lg input[data-dl]').forEach((c) => c.addEventListener('change', () => { if (c.checked) dnOffL.delete(c.dataset.dl); else dnOffL.add(c.dataset.dl); dnRefresh(); }));
@@ -4105,6 +4216,7 @@ window.GPK = GPK;
     if (window.matchMedia('(min-width: 900px)').matches && document.getElementById('mpLeft')) {
       const lp = document.getElementById('mpLeft'), box = document.getElementById('mpBox');
       lp.appendChild(C.getContainer()); L.DomEvent.disableScrollPropagation(lp); L.DomEvent.disableClickPropagation(lp);
+      const tb = document.querySelector('#lgMap .mp-tools'); if (tb) { tb.classList.add('mp-tools-in'); box.appendChild(tb); L.DomEvent.disableClickPropagation(tb); }
       if (LM.sddOpen) LM.sddOpen(true, false);
       box.classList.add('mp-2p');
       const tg = (cls, btn, a, b) => { const off = box.classList.toggle(cls); btn.textContent = off ? b : a; lsSet(cls, off ? '1' : '0'); };
@@ -4115,7 +4227,7 @@ window.GPK = GPK;
     }
   }
   // ranh giới tỉnh: bản đồ thường màu đỏ, ảnh vệ tinh màu trắng cho dễ nhìn trên nền xanh
-  function provStyle() { return LM.base === 'sat' ? { color: '#ffffff', weight: 1.6, opacity: 0.95, dashArray: '6 4' } : { color: '#d0361f', weight: 1.4, opacity: 0.85, dashArray: '6 4' }; }
+  function provStyle() { return LM.base !== 'osm' ? { color: '#ffffff', weight: 1.6, opacity: 0.95, dashArray: '6 4' } : { color: '#d0361f', weight: 1.4, opacity: 0.85, dashArray: '6 4' }; }
   // địa giới 34 tỉnh/thành (đường nét đơn giản hóa, đổi từ dữ liệu bản đồ có sẵn sang kinh/vĩ độ)
   function buildProvLayer() {
     const toLL = (x, y) => [MAP.LAT1 - y / MAP.K, MAP.LON0 + x / (MAP.K * MAP.CX)];
@@ -4158,13 +4270,14 @@ window.GPK = GPK;
   function setBase(b) {
     LM.base = b;
     if (!LM.provBound) { LM.provBound = true; $('mpProv').addEventListener('click', () => setProv(!LM.showProv)); }
-    const bx = $('mpBox'); if (bx) bx.classList.toggle('sat', b === 'sat');
+    const bx = $('mpBox'); if (bx) bx.classList.toggle('sat', b !== 'osm');
+    try { localStorage.setItem('mpBaseMap', b); } catch (e) { /* bo qua */ }
     if (LM.built) MAP.prov.forEach((p) => { if (p._poly) p._poly.setStyle(provStyle()); });
     document.querySelectorAll('#mpBase .chip').forEach((c) => c.classList.toggle('active', c.dataset.base === b));
     document.querySelectorAll('.mp-sdd-bs button').forEach((c) => c.classList.toggle('on', c.dataset.fb === b));
     if (!LM.built) return;
     Object.keys(LM.tiles).forEach((k) => { if (k !== b && LM.map.hasLayer(LM.tiles[k])) LM.map.removeLayer(LM.tiles[k]); });
-    LM.tiles[b].addTo(LM.map); LM.tiles[b].bringToBack();
+    LM.tiles[b].addTo(LM.map); if (LM.tiles[b].bringToBack) LM.tiles[b].bringToBack();
     restyle();
   }
 
@@ -4195,7 +4308,7 @@ window.GPK = GPK;
     layoutMarks();
   }
   function restyle() {
-    const sat = LM.base === 'sat';
+    const sat = LM.base !== 'osm';
     LM.items.forEach((it) => {
       if (!it.grp) return;
       const on = it.i === LM.sel || (LS.mapSel && LS.mapSel.ids.indexOf(it.i) >= 0 && LS.mapSel.ids.length === 1);
