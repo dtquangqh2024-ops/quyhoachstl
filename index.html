@@ -1737,10 +1737,18 @@ svg.leaflet-image-layer.leaflet-interactive path {
     .mp-layout:has(.mp-box.r-off) .mp-side { display: none; }
     .mp-box.r-off .mp-ptg-r { right: 0; }
     body:not(.mp-fs-on) .mp-box.r-off .leaflet-top.leaflet-right, body:not(.mp-fs-on) .mp-box.r-off .leaflet-bottom.leaflet-right { right: 18px; }
-    body.mp-fs-on .mp-ptg-r { display: none; }
-    body.mp-fs-on .mp-box.mp-2p .leaflet-top.leaflet-left { left: 300px; }
+    body.mp-fs-on .mp-box.mp-2p .leaflet-top.leaflet-left { left: 308px; }
     body.mp-fs-on .mp-box.l-off .leaflet-top.leaflet-left { left: 18px; }
     body.mp-fs-on .mp-box.mp-2p .mp-left { top: 54px; }
+    /* Toan man hinh: bang phai neo sat mep phai giong bang trai, thu/mo bang nut ▶ */
+    body.mp-fs-on .mp-side, body.mp-fs-on.mp-list-open .mp-side { display: block; position: fixed; z-index: 51; top: 54px; right: 0; bottom: 0; width: 340px; height: auto; max-height: none; min-height: 0; overflow: auto; border: 0; border-left: 1px solid var(--line); border-radius: 0; background: rgba(255,255,255,.97); box-shadow: -2px 0 8px rgba(0,0,0,.15); }
+    body.mp-fs-on .mp-layout:has(.mp-box.r-off) .mp-side { display: none; }
+    body.mp-fs-on .mp-fslist { display: none; }
+    body.mp-fs-on .mp-box.mp-2p .mp-ptg-r { display: flex; top: calc(50% + 27px); }
+    body.mp-fs-on .mp-box.mp-2p .mp-ptg-l { top: calc(50% + 27px); }
+    body.mp-fs-on .mp-box.r-off .mp-ptg-r { right: 0; }
+    body.mp-fs-on .mp-box.mp-2p .leaflet-top.leaflet-right, body.mp-fs-on .mp-box.mp-2p .leaflet-bottom.leaflet-right { right: 348px; }
+    body.mp-fs-on .mp-box.r-off .leaflet-top.leaflet-right, body.mp-fs-on .mp-box.r-off .leaflet-bottom.leaflet-right { right: 18px; }
   }
   /* lớp GPKG: danh sách lớp con luôn hiện */
   .mp-gpk .gp-sub label { display: flex; gap: 5px; align-items: flex-start; }
@@ -2842,7 +2850,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
 function mpPad(o) {
   o = Object.assign({}, o || {}); const box = document.getElementById('mpBox'), p = (o.padding && o.padding[0]) || 30;
   if (box && box.classList.contains('mp-2p')) {
-    const l = box.classList.contains('l-off') ? 0 : 300, r = box.classList.contains('r-off') || document.body.classList.contains('mp-fs-on') ? 0 : 350;
+    const l = box.classList.contains('l-off') ? 0 : 300, r = box.classList.contains('r-off') ? 0 : 350;
     delete o.padding; o.paddingTopLeft = [l + p, p]; o.paddingBottomRight = [r + p, p];
   }
   return o;
@@ -2932,7 +2940,10 @@ function gpkConvert(SQL, proj4, bytes) {
 const GPK = (() => {
   const CDN_SQL = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/', CDN_PROJ = 'https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js';
   const E = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
-  const S = { list: [], err: '', cache: {}, shown: {}, more: {}, map: null, root: null, loading: false, open: {} };
+  const S = { list: [], err: '', cache: {}, pend: {}, shown: {}, more: {}, map: null, roots: [], loading: false, open: {} };
+  /* Bo QHPK luu cung kho voi QHCT, phan biet bang tien to ten: "QHPK: ..." */
+  const isPk = (r) => /^QHPK\s*[:\-–]/i.test(r.project || '');
+  const tenHT = (r) => String(r.project || '').replace(/^QHPK\s*[:\-–]\s*/i, '');
   /* Kieu ve mac dinh theo ten lop PL II (ten bang trong GPKG cua CAD2HoSoGIS khong co tien to "QuyHoach — ").
      Moi lop deu bat san; ranh gioi chi ve vien, khong to, khong bat chuot (bam xuyen xuong lo dat). */
   const DEF = {
@@ -2983,11 +2994,15 @@ const GPK = (() => {
   };
   /* Mau du phong khi lo dat khong co truong mauHienThi (GPKG cu): bo mau kieu cong quy hoach TP.HCM theo phanLoai */
   const COL = [[/mat nuoc|ho, ao|\bho\b|song|suoi|kenh|bien|dam/, '#a2dafa'], [/giao thong|bai do xe|ben xe|duong sat|quang truong/, '#e5e2db'], [/chuyen dung|cach ly|han che|rung/, '#647d44'], [/cay xanh|cong vien|vuon hoa|the duc the thao/, '#83bc44'], [/giao duc|truong|mam non|dao tao|nghien cuu/, '#a27444'], [/y te/, '#a27470'], [/ton giao|di tich|tin nguong/, '#7e4844'], [/co quan|tru so/, '#498b9d'], [/an ninh|quoc phong|cong nghiep|kho|san xuat/, '#8c749d'], [/hon hop/, '#fcb89d'], [/nha o|dan cu|lang xom|chung cu|lien ke|biet thu|\bo\b/, '#bd9f44'], [/cong cong|van hoa|thuong mai|dich vu|du lich|cho\b|hanh chinh/, '#fc4844'], [/ha tang|dau moi|nghia trang|xu ly|tram/, '#b4b4b4'], [/nong nghiep|thuy san|chua su dung|lua/, '#dce6b4']];
+  const MA = [[/^(CX|CV|VH|TDTT|TT?DTT|DTT)/, '#83bc44'], [/^(MN|NT|TH|THCS|THPT|GD|GDDT|DT?NC)/, '#a27444'], [/^YT/, '#a27470'], [/^(HH|CCHH|DVHH|OHH)/, '#fcb89d'], [/^(CCCT|CT|NOXH|NO|OCT|CC?ODT|LK|BT|NV|ODT|ONT|TDC|OM|DO|O)$|^(CCCT|NOXH|NO|OCT|LK|BT|NV|ODT|TDC)/, '#bd9f44'], [/^(CC|CCDV|CCDT|CCKO|DV|TM|TMDV|HC|VP)/, '#fc4844'], [/^(CQ|TS)/, '#498b9d'], [/^(DTLS|DT|TG|TN)$/, '#7e4844'], [/^(P|BX|BDX|GT|DX|PK)$|^(BDX|BX|GT)/, '#e5e2db'], [/^(HT|HTKT|DM|TBA|XL|KT)/, '#b4b4b4'], [/^(MN?U?OC|MN|HO|SONG|MAT)/, '#a2dafa'], [/^(CN|KHO|SX|AN|QP)/, '#8c749d']];
   const khongDau = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
   const colorOf = (p) => {
     if (p.mauHienThi && /^#[0-9a-f]{6}$/i.test(p.mauHienThi)) return p.mauHienThi;
-    const n = khongDau(p.phanLoai || p.chucNang || p.tenDoiTuong);
-    for (const [re, c] of COL) if (re.test(n)) return c;
+    const n = khongDau(p.tenHienThi || p.phanLoai || p.chucNang || p.loaiDat || p.tenDoiTuong);
+    if (n) for (const [re, c] of COL) if (re.test(n)) return c;
+    /* khong co ten chuc nang: doan theo ma lo (CCCT-01, CXCC-02, CCHH, LK-03, TH, MN, P...) */
+    const ma = khongDau(p.kyHieu || p.tenLoDat || p.Text || '').toUpperCase().replace(/[^A-Z]/g, '');
+    if (ma) for (const [re, c] of MA) if (re.test(ma)) return c;
     let h = 0; for (let i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0; return 'hsl(' + (h % 360) + ',40%,70%)';
   };
   const fmt = (v) => typeof v === 'number' ? v.toLocaleString('vi-VN') : String(v);
@@ -3015,13 +3030,19 @@ const GPK = (() => {
     });
     return gj;
   }
-  async function ensure(rec) {
-    if (S.cache[rec.id]) return S.cache[rec.id];
+  /* Mot du an chi tai 1 lan: bam tat/bat lien tuc khi dang tai khong tao them ban ve thu 2 (truoc day ban ve cu bi bo lai tren ban do -> "luu hinh") */
+  function ensure(rec) {
+    if (S.cache[rec.id]) return Promise.resolve(S.cache[rec.id]);
+    if (!S.pend[rec.id]) S.pend[rec.id] = load(rec).finally(() => { delete S.pend[rec.id]; });
+    return S.pend[rec.id];
+  }
+  async function load(rec) {
     const data = await get('getLayer&id=' + encodeURIComponent(rec.id));
     /* thu tu ve: lop z nho ve truoc (nam duoi); ranh gioi ve sau cung, nam tren */
     const layers = data.layers.map((l) => { const d = def(l); return { l, d, gj: null, on: !!d.on }; }).sort((a, b) => (a.d.z - b.d.z) || (a.l.k < b.l.k ? -1 : 1));
     return (S.cache[rec.id] = { data, layers });
   }
+  function goHet(c) { if (c) c.layers.forEach((x) => { if (x.gj && S.map.hasLayer(x.gj)) S.map.removeLayer(x.gj); }); }
   function draw(rec, c) {
     c.layers.forEach((x) => {
       const want = S.shown[rec.id] && x.on;
@@ -3033,16 +3054,17 @@ const GPK = (() => {
   function fit(c) { try { if (c.data.bounds) S.map.fitBounds(c.data.bounds, mpPad({ padding: [30, 30], maxZoom: 19 })); } catch (e) { /* bỏ qua */ } }
   function ago(ms) { const d = new Date(ms); return d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); }
 
-  function render() {
-    const root = S.root; if (!root) return;
-    const body = S.err ? '<div class="gp-note">' + E(S.err) + '</div>' : !S.list.length ? '<div class="gp-note">' + (S.loading ? 'Loading…' : 'No project layers yet.') + '</div>' :
-      S.list.map((r) => {
+  function render() { S.roots.forEach(renderRoot); }
+  function renderRoot(root) {
+    const pk = root.dataset.kind === 'pk', ds = S.list.filter((r) => isPk(r) === pk);
+    const body = S.err ? '<div class="gp-note">' + E(S.err) + '</div>' : !ds.length ? '<div class="gp-note">' + (S.loading ? 'Loading…' : pk ? 'Chưa có QHPK nạp từ GPKG.' : 'No project layers yet.') + '</div>' :
+      ds.map((r) => {
         const c = S.cache[r.id], on = !!S.shown[r.id];
         const li = (x, i) => '<label><input type="checkbox" data-i="' + i + '"' + (x.on ? ' checked' : '') + '> ' + E(x.d.n) + ' <small>' + x.l.n + '</small></label>';
         /* danh sach lop: lop tren cung (ranh) dau tien, giong thu tu nhin tren ban do */
         const ds = c ? c.layers.map((x, i) => [x, i]).reverse() : [], chinh = ds.filter(([x]) => x.d.on), khac = ds.filter(([x]) => !x.d.on);
         const sub = on && c ? '<div class="gp-sub">' + chinh.map(([x, i]) => li(x, i)).join('') + (khac.length ? '<details class="gp-more"' + (S.more[r.id] ? ' open' : '') + '><summary>Lớp khác (' + khac.length + ')</summary>' + khac.map(([x, i]) => li(x, i)).join('') + '</details>' : '') + '</div>' : '';
-        return '<div class="gp" data-id="' + E(r.id) + '"><div class="gp-h"><label><input type="checkbox" class="gp-all"' + (on ? ' checked' : '') + '> 📁 <b>' + E(r.project) + '</b></label><span><button type="button" class="gp-x" title="Show / hide layers">' + (S.open[r.id] ? '▾' : '▸') + '</button><button type="button" class="gp-zoom" title="Zoom to project">⌖</button><button type="button" class="gp-del adm-only" title="Delete this layer set">🗑</button></span></div>' + (S.open[r.id] ? '<div class="gp-meta">' + r.n + ' features · ' + ago(r.updated) + '</div>' + (on && c ? sub : '<div class="gp-note">' + (on ? 'Loading…' : 'Tick the project to show its layers.') + '</div>') : '') + '</div>';
+        return '<div class="gp" data-id="' + E(r.id) + '"><div class="gp-h"><label><input type="checkbox" class="gp-all"' + (on ? ' checked' : '') + '> 📁 <b>' + E(tenHT(r)) + '</b></label><span><button type="button" class="gp-x" title="Show / hide layers">' + (S.open[r.id] ? '▾' : '▸') + '</button><button type="button" class="gp-zoom" title="Zoom to project">⌖</button><button type="button" class="gp-del adm-only" title="Delete this layer set">🗑</button></span></div>' + (S.open[r.id] ? '<div class="gp-meta">' + r.n + ' features · ' + ago(r.updated) + '</div>' + (on && c ? sub : '<div class="gp-note">' + (on ? 'Loading…' : 'Tick the project to show its layers.') + '</div>') : '') + '</div>';
       }).join('');
     root.querySelector('.gp-list').innerHTML = body;
   }
@@ -3057,20 +3079,26 @@ const GPK = (() => {
     render();
   }
   function mount(panel, map) {
-    S.map = map;
-    const host = panel.querySelector('.lv-ct') || panel.querySelector('.mp-sdd-in') || panel;
-    if (host.querySelector('.mp-gpk')) return;
-    const root = document.createElement('div'); root.className = 'mp-gpk'; S.root = root;
-    root.innerHTML = '<div class="gp-t"><button type="button" class="gp-imp adm-only" title="Import a GeoPackage (.gpkg) file">⬆ Import GPKG</button></div><div class="gp-list"></div><input type="file" id="gpkFile" accept=".gpkg" style="display:none">';
+    const first = !S.map; S.map = map;
+    const hct = panel.querySelector('.lv-ct') || panel.querySelector('.mp-sdd-in') || panel, hpk = panel.querySelector('.lv-pk-gp');
+    let moi = false;
+    [[hct, 'ct'], [hpk, 'pk']].forEach(([h, k]) => { if (h && !h.querySelector('.mp-gpk')) { mountRoot(h, k); moi = true; } });
+    if (first) { const zf = () => map.getZoom() >= 17; const lz = () => map.getContainer().classList.toggle('gpk-lbl-on', zf()); map.on('zoomend', lz); lz(); }
+    if (moi) reload();
+  }
+  function mountRoot(host, kind) {
+    const map = S.map, root = document.createElement('div'); root.className = 'mp-gpk'; root.dataset.kind = kind;
+    S.roots.push(root);
+    root.innerHTML = '<div class="gp-t"><button type="button" class="gp-imp adm-only" title="' + (kind === 'pk' ? 'Nạp GPKG quy hoạch phân khu' : 'Import a GeoPackage (.gpkg) file') + '">⬆ Import GPKG' + (kind === 'pk' ? ' phân khu' : '') + '</button></div><div class="gp-list"></div><input type="file" class="gpk-file" accept=".gpkg" style="display:none">';
     host.appendChild(root);
-    const zf = () => map.getZoom() >= 17; const lz = () => map.getContainer().classList.toggle('gpk-lbl-on', zf()); map.on('zoomend', lz); lz();
+    const fi = root.querySelector('.gpk-file');
     root.addEventListener('click', (e) => {
       const gp = e.target.closest('.gp'), rec = gp && S.list.find((r) => r.id === gp.dataset.id);
-      if (e.target.closest('.gp-imp')) { root.querySelector('#gpkFile').value = ''; root.querySelector('#gpkFile').click(); return; }
+      if (e.target.closest('.gp-imp')) { fi.value = ''; fi.click(); return; }
       if (!rec) return;
       if (e.target.closest('.gp-x')) { S.open[rec.id] = !S.open[rec.id]; render(); return; }
       if (e.target.closest('.gp-zoom')) { ensure(rec).then((c) => { if (!S.shown[rec.id]) toggle(rec, true, true); else fit(c); }).catch((er) => ADM.toast(er.message, true)); return; }
-      if (e.target.closest('.gp-del')) { if (confirm('Delete the map layers of "' + rec.project + '" from Drive?')) ADM.api({ action: 'deleteLayer', id: rec.id }).then(() => { const c = S.cache[rec.id]; if (c) c.layers.forEach((x) => { if (x.gj) S.map.removeLayer(x.gj); }); delete S.cache[rec.id]; delete S.shown[rec.id]; ADM.toast('Deleted'); reload(); }).catch((er) => ADM.toast(er.message, true)); }
+      if (e.target.closest('.gp-del')) { if (confirm('Delete the map layers of "' + rec.project + '" from Drive?')) ADM.api({ action: 'deleteLayer', id: rec.id }).then(() => { goHet(S.cache[rec.id]); delete S.cache[rec.id]; delete S.shown[rec.id]; ADM.toast('Deleted'); reload(); }).catch((er) => ADM.toast(er.message, true)); }
     });
     root.addEventListener('toggle', (e) => { const g = e.target.closest && e.target.closest('.gp'); if (g && e.target.classList.contains('gp-more')) S.more[g.dataset.id] = e.target.open; }, true);
     root.addEventListener('change', (e) => {
@@ -3078,8 +3106,7 @@ const GPK = (() => {
       if (e.target.classList.contains('gp-all')) { toggle(rec, e.target.checked, true); return; }
       if (e.target.dataset.i != null) { const c = S.cache[rec.id]; c.layers[+e.target.dataset.i].on = e.target.checked; draw(rec, c); }
     });
-    root.querySelector('#gpkFile').addEventListener('change', (e) => { const f = e.target.files[0]; if (f) importFile(f); });
-    reload();
+    fi.addEventListener('change', (e) => { const f = e.target.files[0]; if (f) importFile(f, kind); });
   }
 
   /* ---- nạp file ---- */
@@ -3091,7 +3118,8 @@ const GPK = (() => {
     if (!SQLP) SQLP = window.initSqlJs({ locateFile: (f) => CDN_SQL + f });
     return { SQL: await SQLP, proj4: window.proj4 };
   }
-  async function importFile(file) {
+  async function importFile(file, kind) {
+    const pk = kind === 'pk';
     ADM.toast('Reading ' + file.name + '…');
     let res;
     try { const { SQL, proj4 } = await engine(); res = gpkConvert(SQL, proj4, new Uint8Array(await file.arrayBuffer())); }
@@ -3099,24 +3127,25 @@ const GPK = (() => {
     if (!res.layers.length) { ADM.toast('This GPKG has no data layers.', true); return; }
     const names = (typeof DATA !== 'undefined' ? DATA : []).map((d) => d.ten).filter(Boolean);
     const base = file.name.replace(/\.gpkg$/i, '').replace(/^\d+[-_ ]*/, '');
-    const guess = names.find((n) => n.toLowerCase() === base.toLowerCase()) || names.find((n) => base && n.toLowerCase().includes(base.toLowerCase())) || base;
+    const guess = pk ? base.replace(/^QHPK\s*[:\-–]\s*/i, '') : names.find((n) => n.toLowerCase() === base.toLowerCase()) || names.find((n) => base && n.toLowerCase().includes(base.toLowerCase())) || base;
     const json = JSON.stringify(res), mb = (json.length / 1048576).toFixed(2);
     ADM.openModal('<h3>Import GeoPackage</h3><div class="sub">' + E(file.name) + ' → ' + res.layers.length + ' layers, ' + res.n + ' features, ' + mb + ' MB (WGS84)</div>' +
-      '<label for="gpkProj">Project (must match the Dashboard name)</label><input id="gpkProj" list="gpkNames" value="' + E(guess) + '"><datalist id="gpkNames">' + names.map((n) => '<option value="' + E(n) + '">').join('') + '</datalist>' +
+      (pk ? '<label for="gpkProj">Tên phân khu (vd: A1-1, Phân khu đô thị GS)</label>' : '<label for="gpkProj">Project (must match the Dashboard name)</label>') + '<input id="gpkProj" list="gpkNames" value="' + E(guess) + '"><datalist id="gpkNames">' + names.map((n) => '<option value="' + E(n) + '">').join('') + '</datalist>' +
       '<div class="hint" id="gpkWarn"></div>' +
       '<div class="hint">Datum: VN-2000 → WGS84 (7-parameter). Skipped: terrain/contour layers' + (res.skipped.length ? ' (' + res.skipped.length + ')' : '') + '. Re-importing the same project overwrites its previous layers.</div>' +
       '<div class="err" id="mdErr" style="display:none"></div><div class="btns"><button id="gpkCancel">Cancel</button><button class="pri" id="gpkOk">Save to Drive</button></div>', (md) => {
         const inp = md.querySelector('#gpkProj'), warn = md.querySelector('#gpkWarn');
-        const chk = () => { const v = inp.value.trim().toLowerCase(); warn.textContent = S.list.some((r) => r.project.toLowerCase() === v) ? '⚠ This project already has layers — they will be replaced.' : (names.some((n) => n.toLowerCase() === v) ? '' : '⚠ Name does not match any Dashboard project.'); };
+        const ten = () => (pk ? 'QHPK: ' : '') + inp.value.trim();
+        const chk = () => { const v = ten().toLowerCase(); warn.textContent = S.list.some((r) => r.project.toLowerCase() === v) ? '⚠ This project already has layers — they will be replaced.' : pk ? '' : (names.some((n) => n.toLowerCase() === v) ? '' : '⚠ Name does not match any Dashboard project.'); };
         inp.addEventListener('input', chk); chk();
         md.querySelector('#gpkCancel').onclick = () => ADM.closeModal();
         md.querySelector('#gpkOk').onclick = async (ev) => {
-          const pj = inp.value.trim(); if (!pj) { ADM.showErr('Enter the project name.'); return; }
+          if (!inp.value.trim()) { ADM.showErr('Enter the project name.'); return; } const pj = ten(); if (!pj) { ADM.showErr('Enter the project name.'); return; }
           ev.target.disabled = true; ev.target.textContent = 'Saving…';
           try {
             const o = await ADM.api({ action: 'saveLayer', project: pj, payload: json });
             ADM.closeModal(); ADM.toast('Saved map layers — ' + pj);
-            const old = S.list.find((r) => r.project === o.project); if (old) { const c = S.cache[old.id]; if (c) c.layers.forEach((x) => { if (x.gj) S.map.removeLayer(x.gj); }); delete S.cache[old.id]; delete S.shown[old.id]; }
+            const old = S.list.find((r) => r.project === o.project); if (old) { goHet(S.cache[old.id]); delete S.cache[old.id]; delete S.shown[old.id]; }
             await reload(); const rec = S.list.find((r) => r.id === o.id); if (rec) toggle(rec, true, true);
           } catch (er) { ADM.showErr(String(er.message || er)); ev.target.disabled = false; ev.target.textContent = 'Save to Drive'; }
         };
@@ -3164,12 +3193,14 @@ const QHPK = (() => {
       '<label class="li"><input type="checkbox" data-pk="kcn"' + (S.kcn ? ' checked' : '') + '><i style="background:#B4A0E6"></i>Khu công nghiệp<small>' + S.data.kcn.features.length + '</small></label>' +
       (S.on ? '<div class="gp-sub"><div class="gp-note" style="display:flex;gap:6px;align-items:center">Độ đậm <input type="range" min="0" max="0.6" step="0.03" value="' + S.op + '" data-pk="op" style="flex:1"></div>' +
         '<input class="pk-find" placeholder="Tìm mã phân khu (vd: A1-1, GN…)" data-pk="find">' +
+        '<details class="gp-more"' + (S.mo ? ' open' : '') + ' data-pk="mo"><summary>Lọc theo nhóm (' + (nh.length - nh.filter((n) => S.tat[n.ten]).length) + '/' + nh.length + ')</summary>' +
         '<div class="gp-note"><a href="#" data-pk="all">Hiện hết</a> · <a href="#" data-pk="none">Tắt hết</a></div>' +
-        nh.map((n) => '<label class="li"><input type="checkbox" data-nh="' + E(n.ten) + '"' + (S.tat[n.ten] ? '' : ' checked') + '><i style="background:' + E(n.mau) + '"></i>' + E(n.ten) + '<small>' + dem[n.ten] + '</small></label>').join('') + '</div>' : '') +
+        nh.map((n) => '<label class="li"><input type="checkbox" data-nh="' + E(n.ten) + '"' + (S.tat[n.ten] ? '' : ' checked') + '><i style="background:' + E(n.mau) + '"></i>' + E(n.ten) + '<small>' + dem[n.ten] + '</small></label>').join('') + '</details></div>' : '') +
       '<div class="gp-note">Nguồn: ' + E(S.data.nguon) + '. Bấm vào bản đồ để xem phân khu.</div>';
   }
   function bind() {
     const el = S.el;
+    el.addEventListener('toggle', (ev) => { if (ev.target.dataset && ev.target.dataset.pk === 'mo') S.mo = ev.target.open; }, true);
     el.addEventListener('change', (ev) => { const t = ev.target, k = t.dataset.pk;
       if (k === 'on') { S.on = t.checked; ls('pkOn', S.on); }
       else if (k === 'kcn') { S.kcn = t.checked; ls('pkKcn', S.kcn); if (S.kcn && !S.on) { S.on = true; ls('pkOn', true); } }
@@ -4163,7 +4194,7 @@ window.QHPK = QHPK;
         '</div>' +
         '<div class="mp-gt"><label class="mp-sdd-t"><input type="checkbox" id="gtDs"' + (onDS ? ' checked' : '') + '> <i class="ln ds"></i>Đường sắt đô thị</label>' +
         '<label class="mp-sdd-t"><input type="checkbox" id="gtGt"' + (onGT ? ' checked' : '') + '> <i class="ln gt"></i>Giao thông đô thị</label></div></details>' + dnHtml + '</details>' +
-        '<details class="lv1" data-lv="qhpk"' + lvOpen('qhpk', 1) + '><summary>Quy hoạch phân khu (QHPK)</summary><div class="lv-pk"><div class="gp-note">Đang tải…</div></div></details>' +
+        '<details class="lv1" data-lv="qhpk"' + lvOpen('qhpk', 1) + '><summary>Quy hoạch phân khu (QHPK)</summary><div class="lv-pk"><div class="gp-note">Đang tải…</div></div><div class="lv-pk-gp"></div></details>' +
         '<details class="lv1" data-lv="qhct"' + lvOpen('qhct', 1) + '><summary>Quy hoạch chi tiết (QHCT)</summary><div class="lv-ct"></div></details></div>';
       d.addEventListener('toggle', (e) => { const t = e.target; if (t.dataset && t.dataset.lv) lsSet('lv_' + t.dataset.lv, t.open ? '1' : '0'); }, true);
       if (window.GPK) GPK.mount(d, map);
