@@ -15,7 +15,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>Stellar Corporate Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap&subset=vietnamese" rel="stylesheet">
 <style>
   :root {
     --navy: #12233f;
@@ -1776,6 +1776,98 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-pk-lbl::before { display: none; }
   .lv-pk .pk-find { width: 100%; margin: 5px 0 2px; padding: 4px 6px; font: inherit; font-size: 11.5px; border: 1px solid var(--line); border-radius: 4px; }
   .lv-pk .li small { margin-left: auto; color: var(--muted); }
+
+/* =====================================================================
+   STELLAR FLAT UI v1 (14/11/2026) — bộ quy tắc giao diện dùng chung App QH + QLDA
+   Nguyên tắc: nền xám nhạt, card trắng viền mỏng, không đổ bóng (trừ lớp nổi: modal,
+   dropdown, ngăn kéo); header navy đặc; mỗi khu vực một nút chính; không cuộn ngang ở 375px.
+   Chỉ đổi phần trình bày. Muốn quay lại giao diện cũ: xóa nguyên khối này.
+   ===================================================================== */
+:root {
+  --navy: #12233F; --navy-2: #1C3358;
+  --paper: #F2F4F7; --card: #FFFFFF; --sunk: #EEF1F5;
+  --ink: #142131; --muted: #5A6A7C; --line: #D9E0E8;
+  --accent: #0F5B8A; --accent-soft: #E2EDF6;
+  --amber: #A86A12; --amber-bg: #FBF0DC;
+  --red: #BF3B2E; --red-bg: #FBE6E3;
+  --green: #2E7D4F; --green-bg: #E3F2E8;
+  --f-ui: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --r: 8px; --r-card: 10px;
+}
+body { font-family: var(--f-ui); font-size: 14px; line-height: 1.5; }
+button, input, select, textarea { font-family: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Header: navy đặc, gọn */
+header.top { background: var(--navy); }
+@media (min-width: 1201px) {
+  header.top { padding-top: calc(18px + env(safe-area-inset-top, 0px)); padding-bottom: 18px; }
+  header.top h1 { font-size: 24px; margin: 0 0 8px; }
+  .logo-col .logo-img.logo-white { height: 40px; }
+}
+header.top h1, .card-title, .lg-stat b { font-family: var(--f-ui); letter-spacing: -.015em; }
+.refresh-btn { border-radius: var(--r); border-color: rgba(255,255,255,.35); background: transparent; font-weight: 500; }
+.refresh-btn:hover { background: rgba(255,255,255,.12); border-color: #fff; }
+
+/* Tab chính */
+nav.main-tabs { background: var(--card); border-bottom: 1px solid var(--line); box-shadow: none; }
+.main-tab { font-weight: 500; color: var(--muted); }
+.main-tab:hover { color: var(--ink); }
+.main-tab.active { color: var(--ink); font-weight: 600; border-bottom-color: var(--accent); }
+
+/* Ô tìm kiếm: phẳng, không đè lên header */
+.controls { margin-top: 16px; }
+.search-box { box-shadow: none !important; border-radius: var(--r-card); padding: 10px 14px; border: 1px solid var(--line); }
+.search-box:focus-within { border-color: var(--accent); }
+.search-box input { font-size: 14px; }
+
+/* Chip lọc */
+.filters { margin-top: 10px; }
+.chip { font-weight: 500; font-size: 12.5px; color: var(--muted); border-color: var(--line); min-height: 30px; transition: border-color .15s, background .15s; }
+.chip:hover { border-color: var(--muted); color: var(--ink); }
+.chip.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+.count-bar { padding: 0 16px; }
+
+/* Card dự án */
+.grid { gap: 14px; }
+.card { border-radius: var(--r-card); border: 1px solid var(--line); box-shadow: none; padding: 16px 16px 14px 18px; gap: 10px; }
+.card::before { width: 3px; }
+.card:hover { border-color: #B8C3D0; }
+.card-title { font-size: 16px; font-weight: 700; }
+.badge { border-radius: 6px; font-weight: 600; padding: 3px 8px; }
+.badge.status-default { color: var(--accent); background: var(--accent-soft); }
+.theloai-tag { border-radius: 6px; font-weight: 500; color: var(--muted); background: var(--sunk); }
+.update-box { background: var(--sunk); border-radius: var(--r); color: var(--ink); }
+details.tomtat-toggle summary { color: var(--accent); font-weight: 500; }
+details.tomtat-toggle .tomtat-body { background: var(--sunk); border: 0; }
+.card-foot { border-top: 1px solid var(--line); padding-top: 10px; }
+
+/* Nút hồ sơ: có link = viền đậm; chưa có = mờ, không viền nét đứt */
+.drawing-btn { border-radius: 6px; font-weight: 600; color: var(--navy); border-color: #9AAAC0; }
+.drawing-btn:hover { background: var(--navy); border-color: var(--navy); color: #fff; }
+.stl-btns .drawing-btn.off { border: 1px solid transparent; background: var(--sunk); color: #A3ADBA; }
+body.is-admin .stl-btns .drawing-btn.off { border: 1px dashed #9FB0CC; background: #F5F8FC; color: var(--navy-2); }
+
+/* Bảng */
+.table-view table thead tr, .lg-table thead tr { background: var(--sunk) !important; }
+.table-view table { border-radius: var(--r-card) !important; }
+
+/* Pháp lý & tiến độ */
+.lg-stat { box-shadow: none !important; border-radius: var(--r-card); }
+.lg-stat:hover { box-shadow: none !important; border-color: #B8C3D0; }
+
+/* Trạng thái */
+.error-state { border-radius: var(--r-card); border: 1px solid #F0C6C1; }
+footer.page-foot { color: var(--muted); border-top: 1px solid var(--line); padding-top: 18px; }
+
+/* Điện thoại: vùng bấm đủ lớn, không tràn ngang */
+@media (max-width: 640px) {
+  .chip { min-height: 34px; padding: 6px 12px; }
+  .grid { padding: 0 12px; }
+  .card { padding: 14px 14px 12px 16px; }
+}
+/* ===================== hết STELLAR FLAT UI v1 ===================== */
 </style>
 </head>
 <body>
