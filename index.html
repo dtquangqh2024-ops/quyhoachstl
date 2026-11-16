@@ -1868,6 +1868,69 @@ footer.page-foot { color: var(--muted); border-top: 1px solid var(--line); paddi
   .card { padding: 14px 14px 12px 16px; }
 }
 /* ===================== hết STELLAR FLAT UI v1 ===================== */
+/* ---------- STELLAR FLAT UI v1.1 (16/11/2026) — từ comment bảng duyệt ----------
+   Header kiểu QLDA (logo trái, tài khoản phải), header + tab cố định khi cuộn,
+   lề trái/phải 16px cho mọi màn, Refresh chỉ còn icon, CĐT dạng khối, bộ chọn tuần kiểu QLDA. */
+:root { --page-w: 100%; }
+
+/* Header: logo – tên app – tài khoản – giờ cập nhật – Refresh */
+header.top { position: sticky; top: 0; z-index: 30; display: flex !important; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+  padding-top: calc(10px + var(--sat, 0px)) !important; padding-bottom: 10px !important; }
+header.top .header-textblock { display: contents; }
+.logo-col { order: -1; flex-direction: row !important; gap: 0 !important; }
+.logo-col .logo-img, .logo-col .logo-img.logo-white { height: 28px !important; }
+.logo-cap { display: none !important; }
+header.top h1 { order: 0; font-size: 16px !important; font-weight: 700; margin: 0 !important; padding-left: 12px; border-left: 1px solid rgba(255,255,255,.25);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+header.top h1 .t-brand { display: inline; }
+header.top .meta { order: 1; margin: 0 0 0 auto !important; display: flex; align-items: center; flex-wrap: nowrap; gap: 8px; font-size: 12px; }
+header.top .meta > span:first-child { order: 2; white-space: nowrap; color: #C9D4E8; }
+header.top .meta .lu-l { display: none; }
+#refreshBtn { order: 3; }
+#authBox { order: 1; }
+.auth-who { background: rgba(255,255,255,.12); border-radius: 999px; padding: 4px 10px; font-weight: 600; white-space: nowrap; }
+header.top .meta .refresh-btn { padding: 4px 10px; font-size: 12px; border-radius: var(--r); white-space: nowrap; }
+.refresh-btn.rf-icon { width: 30px; height: 30px; padding: 0 !important; display: inline-flex; align-items: center; justify-content: center; font-size: 16px !important; }
+.refresh-btn.spin { opacity: .6; }
+
+/* Tab chính dính ngay dưới header (chiều cao header đo bằng JS → --hh) */
+nav.main-tabs { top: var(--hh, 0px) !important; z-index: 29; }
+
+/* Lề 16px: mọi khối nội dung trải hết chiều ngang */
+.controls, .filters, .count-bar, .grid, .view-toggle, .table-view, .lg-wrap, .wk-idle-wrap, nav.main-tabs .inner { max-width: none !important; }
+
+/* CĐT: khối phân đoạn như QLDA */
+#cdtFilters { display: inline-flex; flex-wrap: wrap; gap: 0; background: var(--sunk); border-radius: var(--r); padding: 2px; }
+#cdtFilters .chip { border: 0; background: transparent; border-radius: 6px; padding: 5px 12px; min-height: 0; font-size: 12.5px; font-weight: 500; color: var(--muted); }
+#cdtFilters .chip:hover { color: var(--ink); }
+#cdtFilters .chip.active { background: var(--card); color: var(--ink); outline: 1px solid var(--line); }
+
+/* Bộ chọn tuần như QLDA */
+.wk-step { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.wk-all { font: inherit; font-size: 12.5px; font-weight: 500; border: 1px solid var(--line); background: var(--card); color: var(--muted); border-radius: var(--r); padding: 6px 12px; cursor: pointer; }
+.wk-all.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+.wk-step .week { display: flex; align-items: center; gap: 4px; background: var(--sunk); border-radius: 999px; padding: 3px; }
+.wk-step .week button { border: 0; background: transparent; width: 30px; height: 30px; border-radius: 999px; cursor: pointer; color: var(--muted); font-size: 16px; }
+.wk-step .week button:hover:not(:disabled) { background: var(--card); color: var(--ink); }
+.wk-step .week button:disabled { opacity: .35; cursor: default; }
+.wk-step .week .lbl { padding: 0 8px; font-weight: 600; font-size: 13px; white-space: nowrap; }
+.wk-step .week .lbl small { font-weight: 400; color: var(--muted); margin-left: 6px; font-size: 12px; }
+.wk-step .mono { font-family: var(--f-mono); }
+.wk-step .wk-pick { font-weight: 500; color: var(--muted); }
+
+/* Điện thoại: header 2 dòng — (1) logo + tên app, (2) tài khoản … giờ + Refresh */
+@media (max-width: 640px) {
+  header.top { display: flex !important; }
+  header.top h1 { flex: 1 1 0; font-size: 15px !important; }
+  header.top .meta { flex: 1 1 100%; margin: 0 !important; }
+  header.top .meta > span:first-child { margin-left: auto; }
+  header.top .meta .lu-d { display: none; }
+  #authOut { font-size: 0 !important; width: 30px; height: 30px; padding: 0 !important; display: inline-flex; align-items: center; justify-content: center; }
+  #authOut::before { content: "⏻"; font-size: 14px; }
+  .wk-step .week .lbl small:last-child { display: none; }
+}
+/* ===================== hết STELLAR FLAT UI v1.1 ===================== */
+
 </style>
 </head>
 <body>
@@ -1877,7 +1940,7 @@ footer.page-foot { color: var(--muted); border-top: 1px solid var(--line); paddi
     <h1>Stellar Corporate Report</h1>
     <div class="meta">
       <span><span class="lu-l">Last refreshed </span><b id="lastUpdated">—</b></span>
-      <button class="refresh-btn" id="refreshBtn">↻ Refresh<span class="rf-l"> now</span></button>
+      <button class="refresh-btn rf-icon" id="refreshBtn" aria-label="Refresh" title="Refresh">↻</button>
       <span id="authBox" class="auth-box"></span>
     </div>
   </div>
@@ -1913,7 +1976,7 @@ footer.page-foot { color: var(--muted); border-top: 1px solid var(--line); paddi
 <div class="count-bar" id="countBar"></div>
 
 <div class="view-toggle" style="max-width: var(--page-w);margin:0 auto 10px;padding:0 16px;display:flex;gap:6px;">
-  <button class="chip active" id="viewCardBtn">▦ Cards</button>
+  <button class="chip active" id="viewCardBtn">▦ Card</button>
   <button class="chip" id="viewTableBtn">☰ Table</button>
 </div>
 
@@ -2157,7 +2220,7 @@ function fmtLeft(ms) { const s = Math.max(0, Math.round(ms / 1000)); return Math
 function renderAuthBox() {
   const box = document.getElementById('authBox'); if (!box) return;
   const t = AUTH.team();
-  if (t) { box.innerHTML = '<span class="auth-who">👤 ' + escapeHtml(t.ten || '') + '</span><button class="refresh-btn adm-toggle" id="admBtn" type="button" style="display:none">Edit</button><button class="refresh-btn" id="authOut">Sign out</button>'; if (window.ADM && ADM.refresh) ADM.refresh(); document.getElementById('authOut').onclick = () => { AUTH.logout(); renderAuthBox(); setPageMode(); renderGate(); }; return; }
+  if (t) { box.innerHTML = '<span class="auth-who">👤 ' + escapeHtml(t.ten || '') + '</span><button class="refresh-btn adm-toggle" id="admBtn" type="button" style="display:none">Edit</button><button class="refresh-btn" id="authOut" title="Sign out" aria-label="Sign out">Sign out</button>'; if (window.ADM && ADM.refresh) ADM.refresh(); document.getElementById('authOut').onclick = () => { AUTH.logout(); renderAuthBox(); setPageMode(); renderGate(); }; return; }
   box.innerHTML = '<button class="refresh-btn" id="authIn" title="Team members: enter your Google Authenticator code">Team sign in</button>' +
     '<span class="auth-form" id="authForm" style="display:none"><input id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 digits"><button class="refresh-btn" id="authGo">Enter</button><span id="authMsg"></span></span>';
   document.getElementById('authIn').onclick = () => { document.getElementById('authForm').style.display = ''; document.getElementById('authIn').style.display = 'none'; document.getElementById('authCode').focus(); };
@@ -2554,7 +2617,7 @@ async function loadData(isManual) {
   const btn = document.getElementById('refreshBtn');
   const loadingEl = document.getElementById('loadingState');
   const errorEl = document.getElementById('errorState');
-  if (isManual) { btn.disabled = true; btn.textContent = '↻ Loading...'; }
+  if (isManual) { btn.disabled = true; btn.classList.add('spin'); }
   try {
     const res = await fetch(WEB_APP_URL + '?action=listProjects' + AUTH.qs(), { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -2575,7 +2638,7 @@ async function loadData(isManual) {
     errorEl.style.display = 'block';
     errorEl.textContent = 'Could not load data (' + err.message + '). Try Refresh, or check your network connection.';
   } finally {
-    if (isManual) { btn.disabled = false; btn.innerHTML = '↻ Refresh<span class="rf-l"> now</span>'; }
+    if (isManual) { btn.disabled = false; btn.classList.remove('spin'); }
   }
 }
 
@@ -2714,23 +2777,29 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
   }
   const SHOW = 8;
   WK.mountBar = function (box) {
-    // mới nhất nằm sát nút "Tất cả" (bên trái), cũ dần sang phải; mỗi ô chỉ 2 dòng: tuần + ngày
-    const weeks = weekList().reverse(), cw = curWeek();
-    const maxOff = Math.max(0, weeks.length - SHOW);
-    if (WK.off > maxOff) WK.off = maxOff;
-    const vis = weeks.slice(WK.off, WK.off + SHOW);
-    const chips = vis.map((wk) => {
-      const mon = pdt(wk), n = countWeek(wk);
-      return '<button type="button" class="wk-chip' + (wk === cw ? ' cur' : '') + (n ? '' : ' z') + (state.week === wk ? ' active' : '') + '" data-wk="' + wk + '" title="Week ' + isoWeek(mon) + ': ' + dmy(mon) + ' – ' + dmy(addDays(mon, 6)) + ' · ' + n + ' project(s) updated">' +
-        '<span class="wn">' + (wk === cw ? 'This week' : 'Week ' + isoWeek(mon)) + '</span><span class="wd">' + rangeLabel(mon) + '</span></button>';
-    }).join('');
-    box.innerHTML = '<div class="wk-wrap">' +
-      '<button type="button" class="wk-chip all' + (state.week === 'all' ? ' active' : '') + '" data-wk="all" title="All weeks — latest update per project"><span class="wn">All</span><span class="wd">latest</span></button>' +
-      '<button type="button" class="wk-nav" data-nav="new" title="Newer weeks" ' + (WK.off <= 0 ? 'disabled' : '') + '>‹</button>' +
-      '<div class="wk-bar">' + chips + '</div>' +
-      '<button type="button" class="wk-nav" data-nav="old" title="Older weeks" ' + (WK.off >= maxOff ? 'disabled' : '') + '>›</button></div>';
-    box.querySelectorAll('.wk-chip').forEach((b) => b.addEventListener('click', () => { state.week = b.dataset.wk; renderFilters(); renderGrid(); }));
-    box.querySelectorAll('.wk-nav').forEach((b) => b.addEventListener('click', () => { WK.off += b.dataset.nav === 'old' ? 4 : -4; if (WK.off < 0) WK.off = 0; renderFilters(); }));
+    // Bộ chọn tuần giống QLDA: [All] ‹ Week N · dd/mm–dd/mm › • (16/11/2026, theo comment bảng duyệt)
+    const weeks = weekList(), cw = curWeek();             // cũ → mới
+    const all = state.week === 'all';
+    const idx = all ? -1 : weeks.indexOf(state.week);
+    const mon = all ? null : pdt(state.week);
+    const n = all ? 0 : countWeek(state.week);
+    const lbl = all ? '<span class="wk-pick">Choose a week</span>'
+      : (state.week === cw ? 'This week' : 'Week ' + isoWeek(mon)) + '<small class="mono">' + dm(mon) + '–' + dmy(addDays(mon, 6)) + '</small>' + '<small>' + n + ' project' + (n === 1 ? '' : 's') + '</small>';
+    box.innerHTML = '<div class="wk-step">' +
+      '<button type="button" class="wk-all' + (all ? ' on' : '') + '" data-go="all">All</button>' +
+      '<div class="week" role="group" aria-label="Week">' +
+      '<button type="button" data-go="prev" aria-label="Previous week"' + ((all ? !weeks.length : idx <= 0) ? ' disabled' : '') + '>‹</button>' +
+      '<span class="lbl">' + lbl + '</span>' +
+      '<button type="button" data-go="next" aria-label="Next week"' + ((all || idx >= weeks.length - 1) ? ' disabled' : '') + '>›</button>' +
+      '<button type="button" data-go="now" aria-label="This week" title="This week">•</button></div></div>';
+    box.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => {
+      const g = b.dataset.go;
+      if (g === 'all') state.week = 'all';
+      else if (g === 'now') state.week = cw;
+      else if (all) state.week = cw;
+      else { const k = idx + (g === 'prev' ? -1 : 1); if (k >= 0 && k < weeks.length) state.week = weeks[k]; }
+      renderFilters(); renderGrid();
+    }));
   };
   WK.note = () => (!WK.ready && WK.err ? '<span class="wk-note">⚠ ' + esc(WK.err) + '</span>' : '');
 
@@ -4745,6 +4814,12 @@ window.QHPK = QHPK;
   wire();
 })();
 
+</script>
+<script>
+/* Header + tab cố định khi cuộn: đo chiều cao header để tab dính ngay bên dưới (16/11/2026) */
+(function(){var h=document.querySelector('header.top');if(!h)return;
+function set(){document.documentElement.style.setProperty('--hh',h.offsetHeight+'px')}
+set();window.addEventListener('resize',set);if(window.ResizeObserver)new ResizeObserver(set).observe(h);})();
 </script>
 </body>
 </html>
