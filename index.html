@@ -3399,12 +3399,22 @@ const QHPK = (() => {
       render(); ve(); S.map.fitBounds(L.geoJSON(f).getBounds(), (window.mpPad || ((o) => o))({ padding: [30, 30] }));
       setTimeout(() => popup(tam(f)), 400); });
   }
-  function noiDung(f) { const p = f.properties;
-    return '<b><i style="background:' + E(p.mau) + '"></i>' + (p.nhom === 'Khu công nghiệp' ? 'KCN ' : 'Phân khu ') + E(p.ma) + '</b>' +
-      '<div>' + E(p.nhom) + '</div>' + (p.ha ? '<div>Diện tích ≈ ' + Number(p.ha).toLocaleString('vi-VN') + ' ha</div>' : '') +
-      (p.ghiChu ? '<div>' + E(p.ghiChu) + '</div>' : '') + '<div style="color:#888;font-size:11px">Ranh QHPK theo QHC Thủ đô Hà Nội</div>'; }
+  function noiDung(f) { const p = f.properties, kcn = p.nhom === 'Khu công nghiệp';
+    const dg = (k, v) => v == null || v === '' ? '' : '<div><span style="color:#888">' + k + ':</span> ' + E(v) + '</div>';
+    const so = (n) => Number(n).toLocaleString('vi-VN');
+    return '<b><i style="background:' + E(p.mau) + '"></i>' + (kcn ? 'KCN ' : 'Phân khu ') + E(p.ma) + '</b>' +
+      (p.ten ? '<div style="font-weight:600;margin:2px 0">' + E(p.ten) + '</div>' : '') +
+      '<div>' + E(p.nhom) + '</div>' +
+      dg('Tỷ lệ', p.tyle) +
+      dg('Địa điểm', p.diadiem) +
+      (p.quymo != null ? dg('Quy mô', so(p.quymo) + ' ha' + (p.quymoGhiChu ? ' (' + p.quymoGhiChu + ')' : '')) : '') +
+      (p.ha ? '<div><span style="color:#888">Diện tích đo trên ranh:</span> ≈ ' + so(p.ha) + ' ha</div>' : '') +
+      dg('Đơn vị tổ chức thực hiện', p.dvToChuc) +
+      dg('Đơn vị tư vấn', p.dvtv) +
+      (p.ghiChu ? '<div>' + E(p.ghiChu) + '</div>' : '') +
+      '<div style="color:#888;font-size:11px;margin-top:3px">Ranh QHPK theo QHC Thủ đô Hà Nội' + (p.ten && S.data.nguonTT ? '. Thông tin: ' + E(S.data.nguonTT) : '') + '</div>'; }
   function popup(ll) { const f = tim(ll); if (!f || !S.map) return false;
-    L.popup({ className: 'mp-sdd-pop', maxWidth: 260 }).setLatLng(ll).setContent(noiDung(f)).openOn(S.map); return true; }
+    L.popup({ className: 'mp-sdd-pop', maxWidth: 320 }).setLatLng(ll).setContent(noiDung(f)).openOn(S.map); return true; }
   function dong(ll) { const f = tim(ll); return f ? '<div>' + (f.properties.nhom === 'Khu công nghiệp' ? 'KCN' : 'Phân khu') + ': <b>' + E(f.properties.ma) + '</b> (' + E(f.properties.nhom) + ')</div>' : ''; }
   function mount(el, map) {
     if (!el || !map) return; S.el = el; S.map = map;
