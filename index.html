@@ -3120,8 +3120,8 @@ const GPK = (() => {
   const E = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
   const S = { list: [], err: '', cache: {}, pend: {}, shown: {}, more: {}, map: null, roots: [], loading: false, open: {} };
   /* Bo QHPK luu cung kho voi QHCT, phan biet bang tien to ten: "QHPK: ..." */
-  const isPk = (r) => /^QHPK\s*[:\-–]/i.test(r.project || '');
-  const tenHT = (r) => String(r.project || '').replace(/^QHPK\s*[:\-–]\s*/i, '');
+  const isPk = (r) => /^QHPK(\s|[:\-–])/i.test(r.project || '');   // Apps Script đổi ':' thành khoảng trắng khi đặt tên tệp, nên chấp nhận cả "QHPK x"
+  const tenHT = (r) => String(r.project || '').replace(/^(QHPK[\s:\-–_]*)+/i, '');
   /* Kieu ve mac dinh theo ten lop PL II (ten bang trong GPKG cua CAD2HoSoGIS khong co tien to "QuyHoach — ").
      Moi lop deu bat san; ranh gioi chi ve vien, khong to, khong bat chuot (bam xuyen xuong lo dat). */
   const DEF = {
@@ -3305,7 +3305,7 @@ const GPK = (() => {
     if (!res.layers.length) { ADM.toast('This GPKG has no data layers.', true); return; }
     const names = (typeof DATA !== 'undefined' ? DATA : []).map((d) => d.ten).filter(Boolean);
     const base = file.name.replace(/\.gpkg$/i, '').replace(/^\d+[-_ ]*/, '');
-    const guess = pk ? base.replace(/^QHPK\s*[:\-–]\s*/i, '') : names.find((n) => n.toLowerCase() === base.toLowerCase()) || names.find((n) => base && n.toLowerCase().includes(base.toLowerCase())) || base;
+    const guess = pk ? base.replace(/^(QHPK[\s:\-–_]*)+/i, '') : names.find((n) => n.toLowerCase() === base.toLowerCase()) || names.find((n) => base && n.toLowerCase().includes(base.toLowerCase())) || base;
     const json = JSON.stringify(res), mb = (json.length / 1048576).toFixed(2);
     ADM.openModal('<h3>Import GeoPackage</h3><div class="sub">' + E(file.name) + ' → ' + res.layers.length + ' layers, ' + res.n + ' features, ' + mb + ' MB (WGS84)</div>' +
       (pk ? '<label for="gpkProj">Tên phân khu (vd: A1-1, Phân khu đô thị GS)</label>' : '<label for="gpkProj">Project (must match the Dashboard name)</label>') + '<input id="gpkProj" list="gpkNames" value="' + E(guess) + '"><datalist id="gpkNames">' + names.map((n) => '<option value="' + E(n) + '">').join('') + '</datalist>' +
@@ -3313,8 +3313,10 @@ const GPK = (() => {
       '<div class="hint">Datum: VN-2000 → WGS84 (7-parameter). Skipped: terrain/contour layers' + (res.skipped.length ? ' (' + res.skipped.length + ')' : '') + '. Re-importing the same project overwrites its previous layers.</div>' +
       '<div class="err" id="mdErr" style="display:none"></div><div class="btns"><button id="gpkCancel">Cancel</button><button class="pri" id="gpkOk">Save to Drive</button></div>', (md) => {
         const inp = md.querySelector('#gpkProj'), warn = md.querySelector('#gpkWarn');
-        const ten = () => (pk ? 'QHPK: ' : '') + inp.value.trim();
-        const chk = () => { const v = ten().toLowerCase(); warn.textContent = S.list.some((r) => r.project.toLowerCase() === v) ? '⚠ This project already has layers — they will be replaced.' : pk ? '' : (names.some((n) => n.toLowerCase() === v) ? '' : '⚠ Name does not match any Dashboard project.'); };
+        const nm = () => (pk ? inp.value.trim().replace(/^(QHPK[\s:\-–_]*)+/i, '') : inp.value.trim());
+        const ten = () => (pk ? 'QHPK - ' : '') + nm();
+        const same = (r) => pk ? isPk(r) && tenHT(r).toLowerCase() === nm().toLowerCase() : r.project.toLowerCase() === ten().toLowerCase();
+        const chk = () => { const v = ten().toLowerCase(); warn.textContent = S.list.some(same) ? '⚠ This project already has layers — they will be replaced.' : pk ? '' : (names.some((n) => n.toLowerCase() === v) ? '' : '⚠ Name does not match any Dashboard project.'); };
         inp.addEventListener('input', chk); chk();
         md.querySelector('#gpkCancel').onclick = () => ADM.closeModal();
         md.querySelector('#gpkOk').onclick = async (ev) => {
@@ -3323,7 +3325,7 @@ const GPK = (() => {
           try {
             const o = await ADM.api({ action: 'saveLayer', project: pj, payload: json });
             ADM.closeModal(); ADM.toast('Saved map layers — ' + pj);
-            const old = S.list.find((r) => r.project === o.project); if (old) { goHet(S.cache[old.id]); delete S.cache[old.id]; delete S.shown[old.id]; }
+            const olds = S.list.filter((r) => r.project === o.project || (pk && same(r) && r.id !== o.id)); olds.forEach((old) => { goHet(S.cache[old.id]); delete S.cache[old.id]; delete S.shown[old.id]; if (old.id !== o.id) ADM.api({ action: 'deleteLayer', id: old.id }).catch(() => {}); });
             await reload(); const rec = S.list.find((r) => r.id === o.id); if (rec) toggle(rec, true, true);
           } catch (er) { ADM.showErr(String(er.message || er)); ev.target.disabled = false; ev.target.textContent = 'Save to Drive'; }
         };
