@@ -3075,7 +3075,7 @@ function gpkProjStr(wkt) {
   }
   return wkt;
 }
-const GPK_KEEP = ['tenDoiTuong', 'tenLoDat', 'kyHieu', 'tenHienThi', 'mauHienThi', 'chucNang', 'dienTich', 'dienTichQH', 'tangCao', 'matDoXayDung', 'matDoXD', 'heSoSuDungDat', 'heSoSDD', 'soCanHo', 'danSo', 'phanLoai', 'ghiChu', 'lopCAD', 'Text', 'ten', 'tenCongTrinh', 'loai', 'Layer'];
+const GPK_KEEP = ['tenDoiTuong', 'tenLoDat', 'kyHieu', 'kyHieuLoDat', 'tangCaoXayDung', 'trangThaiQuyHoach', 'capDoQuyHoach', 'tenHienThi', 'mauHienThi', 'chucNang', 'dienTich', 'dienTichQH', 'tangCao', 'matDoXayDung', 'matDoXD', 'heSoSuDungDat', 'heSoSDD', 'soCanHo', 'danSo', 'phanLoai', 'ghiChu', 'lopCAD', 'Text', 'ten', 'tenCongTrinh', 'loai', 'Layer'];
 const r6 = (v) => Math.round(v * 1e6) / 1e6;
 /* SQL: sql.js đã khởi tạo; proj4: thư viện proj4; bytes: Uint8Array của file .gpkg */
 function gpkConvert(SQL, proj4, bytes) {
@@ -3107,6 +3107,8 @@ function gpkConvert(SQL, proj4, bytes) {
       const r = st.get(); let g; try { g = gpkGeom(r[0], tf); } catch (e) { g = null; }
       if (!g) continue; bb(g.coordinates || []);
       const pr = {}; keep.forEach((k, i) => { const v = r[i + 1]; if (v != null && v !== '' && v !== 'None') pr[k] = typeof v === 'number' ? Math.round(v * 100) / 100 : v; });
+      /* GPKG theo template TT16 (CAD2HoSoGIS 2.0): ten truong moi -> ten app dang dung */
+      [['kyHieuLoDat', 'kyHieu'], ['tangCaoXayDung', 'tangCao'], ['trangThaiQuyHoach', 'giaiDoan']].forEach(([a, b]) => { if (pr[a] != null && pr[b] == null) pr[b] = pr[a]; delete pr[a]; });
       feats.push({ type: 'Feature', properties: pr, geometry: g });
     }
     st.free();
@@ -3186,7 +3188,7 @@ const GPK = (() => {
   const fmt = (v) => typeof v === 'number' ? v.toLocaleString('vi-VN') : String(v);
   const popup = (p, ltitle) => {
     const t = p.kyHieu || p.tenDoiTuong || p.Text || '';
-    const rows = [['tenLoDat', 'Lô đất'], ['tenHienThi', 'Chức năng'], ['dienTichQH', 'Diện tích theo bảng (m²)'], ['dienTich', 'Diện tích (m²)'], ['matDoXD', 'Mật độ XD (%)'], ['matDoXayDung', 'Mật độ XD (%)'], ['tangCao', 'Tầng cao'], ['heSoSDD', 'Hệ số SDĐ'], ['heSoSuDungDat', 'Hệ số SDĐ'], ['soCanHo', 'Số căn hộ'], ['danSo', 'Dân số'], ['phanLoai', 'Phân loại'], ['ghiChu', 'Ghi chú']];
+    const rows = [['tenLoDat', 'Lô đất'], ['tenHienThi', 'Chức năng'], ['dienTichQH', 'Diện tích theo bảng (m²)'], ['dienTich', 'Diện tích (m²)'], ['matDoXD', 'Mật độ XD (%)'], ['matDoXayDung', 'Mật độ XD (%)'], ['tangCao', 'Tầng cao'], ['giaiDoan', 'Giai đoạn'], ['heSoSDD', 'Hệ số SDĐ'], ['heSoSuDungDat', 'Hệ số SDĐ'], ['soCanHo', 'Số căn hộ'], ['danSo', 'Dân số'], ['phanLoai', 'Phân loại'], ['ghiChu', 'Ghi chú']];
     const sw = p.mauHienThi || (p.phanLoai ? colorOf(p) : null);
     return '<b>' + (sw ? '<i style="background:' + E(sw) + '"></i>' : '') + E(t) + '</b>' + rows.filter(([k]) => p[k] != null && !(k === 'phanLoai' && p.tenHienThi === p.phanLoai)).map(([k, l]) => '<div>' + l + ': <b>' + E(fmt(p[k])) + '</b></div>').join('') + '<div class="k">' + E(ltitle) + '</div>';
   };
