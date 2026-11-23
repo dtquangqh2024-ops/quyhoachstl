@@ -1456,7 +1456,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-sdd .lv2 > summary input { margin: 0; }
   .mp-sdd .lv2.mp-dn { margin-top: 2px; }
   .mp-sdd .lv1 > .gp-note { margin: 2px 0 2px 12px; }
-  .mp-sdd .lv-ct { margin-left: 8px; }
+  .mp-sdd .lv-ct, .mp-sdd .lv-tmb { margin-left: 8px; }
   .mp-dn-go { margin-top: 6px; }
   .mp-dn-go button { width: 100%; font: inherit; font-size: 11px; font-weight: 600; padding: 3px 4px; border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--navy-2); cursor: pointer; }
   .mp-sdd-in { max-height: calc(100vh - 170px); overflow: auto; }
@@ -3122,8 +3122,13 @@ const GPK = (() => {
   const E = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
   const S = { list: [], err: '', cache: {}, pend: {}, shown: {}, more: {}, map: null, roots: [], loading: false, open: {} };
   /* Bo QHPK luu cung kho voi QHCT, phan biet bang tien to ten: "QHPK: ..." */
-  const isPk = (r) => /^QHPK(\s|[:\-–])/i.test(r.project || '');   // Apps Script đổi ':' thành khoảng trắng khi đặt tên tệp, nên chấp nhận cả "QHPK x"
-  const tenHT = (r) => String(r.project || '').replace(/^(QHPK[\s:\-–_]*)+/i, '');
+  const isPk = (r) => /^QHPK(\s|[:\-–])/i.test(r.project || '');
+  /* Quy hoach tong mat bang luu chung kho, tien to ten "QHTMB - ..." */
+  const isTmb = (r) => /^QHTMB(\s|[:\-–])/i.test(r.project || '');
+  const kindOf = (r) => isPk(r) ? 'pk' : isTmb(r) ? 'tmb' : 'ct';
+  const TIEN_TO = { pk: 'QHPK - ', tmb: 'QHTMB - ', ct: '' };
+  const boTienTo = (s) => String(s || '').replace(/^((QHPK|QHTMB)[\s:\-–_]*)+/i, '');   // Apps Script đổi ':' thành khoảng trắng khi đặt tên tệp, nên chấp nhận cả "QHPK x"
+  const tenHT = (r) => boTienTo(r.project);
   /* Kieu ve mac dinh theo ten lop PL II (ten bang trong GPKG cua CAD2HoSoGIS khong co tien to "QuyHoach — ").
      Moi lop deu bat san; ranh gioi chi ve vien, khong to, khong bat chuot (bam xuyen xuong lo dat). */
   const DEF = {
@@ -3163,6 +3168,8 @@ const GPK = (() => {
     const d = Object.assign({}, DEF[b] || {}), k = fromKieu(l.s, l.t);
     if (k) { Object.keys(k).forEach((x) => { if (k[x] != null) d[x] = k[x]; }); }
     if (/RanhGioiQuyHoach|PhanKhuQuyHoach|PhanOQuyHoach/.test(b)) { d.edge = 1; d.st = Object.assign({}, d.st, { fill: false }); }
+    /* Lo dat luon to theo chuc nang va bam xem thong tin, ke ca GPKG cu ghi kieu_hien_thi = 'vung' khong nen (CAD2HoSoGIS 2.0 truoc 23/11) */
+    if (b === 'ChucNangSuDungDat_A' && l.t === 'A') { d.fillBy = 1; d.edge = 0; delete d.st; d.z = 10; }
     if (!d.n || /^[A-Za-z]+_[ALP]$/.test(d.n)) d.n = /[^\x00-\x7f]/.test(b0) ? b0 : (DEF[b] && DEF[b].n) || nice(l.k);
     if (/^HienTrang/.test(l.k) && !/^Hiện trạng/.test(d.n)) d.n = 'Hiện trạng: ' + d.n;
     if (!d.st && !d.fillBy && !d.pt) d.st = l.t === 'A' ? { color: '#475569', weight: 1, fillColor: '#cbd5e1', fillOpacity: 0.5 } : { color: '#475569', weight: 1.2 };
@@ -3236,8 +3243,8 @@ const GPK = (() => {
 
   function render() { S.roots.forEach(renderRoot); }
   function renderRoot(root) {
-    const pk = root.dataset.kind === 'pk', ds = S.list.filter((r) => isPk(r) === pk);
-    const body = S.err ? '<div class="gp-note">' + E(S.err) + '</div>' : !ds.length ? '<div class="gp-note">' + (S.loading ? 'Loading…' : pk ? 'Chưa có QHPK nạp từ GPKG.' : 'No project layers yet.') + '</div>' :
+    const kd = root.dataset.kind, pk = kd === 'pk', ds = S.list.filter((r) => kindOf(r) === kd);
+    const body = S.err ? '<div class="gp-note">' + E(S.err) + '</div>' : !ds.length ? '<div class="gp-note">' + (S.loading ? 'Loading…' : pk ? 'Chưa có QHPK nạp từ GPKG.' : kd === 'tmb' ? 'Chưa có QH tổng mặt bằng nạp từ GPKG.' : 'No project layers yet.') + '</div>' :
       ds.map((r) => {
         const c = S.cache[r.id], on = !!S.shown[r.id];
         const li = (x, i) => '<label><input type="checkbox" data-i="' + i + '"' + (x.on ? ' checked' : '') + '> ' + E(x.d.n) + ' <small>' + x.l.n + '</small></label>';
@@ -3260,16 +3267,16 @@ const GPK = (() => {
   }
   function mount(panel, map) {
     const first = !S.map; S.map = map;
-    const hct = panel.querySelector('.lv-ct') || panel.querySelector('.mp-sdd-in') || panel, hpk = panel.querySelector('.lv-pk-gp');
+    const hct = panel.querySelector('.lv-ct') || panel.querySelector('.mp-sdd-in') || panel, hpk = panel.querySelector('.lv-pk-gp'), htmb = panel.querySelector('.lv-tmb');
     let moi = false;
-    [[hct, 'ct'], [hpk, 'pk']].forEach(([h, k]) => { if (h && !h.querySelector('.mp-gpk')) { mountRoot(h, k); moi = true; } });
+    [[hct, 'ct'], [hpk, 'pk'], [htmb, 'tmb']].forEach(([h, k]) => { if (h && !h.querySelector('.mp-gpk')) { mountRoot(h, k); moi = true; } });
     if (first) { const zf = () => map.getZoom() >= 17; const lz = () => map.getContainer().classList.toggle('gpk-lbl-on', zf()); map.on('zoomend', lz); lz(); }
     if (moi) reload();
   }
   function mountRoot(host, kind) {
     const map = S.map, root = document.createElement('div'); root.className = 'mp-gpk'; root.dataset.kind = kind;
     S.roots.push(root);
-    root.innerHTML = '<div class="gp-t"><button type="button" class="gp-imp adm-only" title="' + (kind === 'pk' ? 'Nạp GPKG quy hoạch phân khu' : 'Import a GeoPackage (.gpkg) file') + '">⬆ Import GPKG' + (kind === 'pk' ? ' phân khu' : '') + '</button></div><div class="gp-list"></div><input type="file" class="gpk-file" accept=".gpkg" style="display:none">';
+    root.innerHTML = '<div class="gp-t"><button type="button" class="gp-imp adm-only" title="' + (kind === 'pk' ? 'Nạp GPKG quy hoạch phân khu' : kind === 'tmb' ? 'Nạp GPKG quy hoạch tổng mặt bằng' : 'Import a GeoPackage (.gpkg) file') + '">⬆ Import GPKG' + (kind === 'pk' ? ' phân khu' : kind === 'tmb' ? ' TMB' : '') + '</button></div><div class="gp-list"></div><input type="file" class="gpk-file" accept=".gpkg" style="display:none">';
     host.appendChild(root);
     const fi = root.querySelector('.gpk-file');
     root.addEventListener('click', (e) => {
@@ -3299,7 +3306,7 @@ const GPK = (() => {
     return { SQL: await SQLP, proj4: window.proj4 };
   }
   async function importFile(file, kind) {
-    const pk = kind === 'pk';
+    const pk = kind === 'pk', co_tt = kind !== 'ct';
     ADM.toast('Reading ' + file.name + '…');
     let res;
     try { const { SQL, proj4 } = await engine(); res = gpkConvert(SQL, proj4, new Uint8Array(await file.arrayBuffer())); }
@@ -3307,7 +3314,7 @@ const GPK = (() => {
     if (!res.layers.length) { ADM.toast('This GPKG has no data layers.', true); return; }
     const names = (typeof DATA !== 'undefined' ? DATA : []).map((d) => d.ten).filter(Boolean);
     const base = file.name.replace(/\.gpkg$/i, '').replace(/^\d+[-_ ]*/, '');
-    const guess = pk ? base.replace(/^(QHPK[\s:\-–_]*)+/i, '') : names.find((n) => n.toLowerCase() === base.toLowerCase()) || names.find((n) => base && n.toLowerCase().includes(base.toLowerCase())) || base;
+    const guess = co_tt ? boTienTo(base) : names.find((n) => n.toLowerCase() === base.toLowerCase()) || names.find((n) => base && n.toLowerCase().includes(base.toLowerCase())) || base;
     const json = JSON.stringify(res), mb = (json.length / 1048576).toFixed(2);
     ADM.openModal('<h3>Import GeoPackage</h3><div class="sub">' + E(file.name) + ' → ' + res.layers.length + ' layers, ' + res.n + ' features, ' + mb + ' MB (WGS84)</div>' +
       (pk ? '<label for="gpkProj">Tên phân khu (vd: A1-1, Phân khu đô thị GS)</label>' : '<label for="gpkProj">Project (must match the Dashboard name)</label>') + '<input id="gpkProj" list="gpkNames" value="' + E(guess) + '"><datalist id="gpkNames">' + names.map((n) => '<option value="' + E(n) + '">').join('') + '</datalist>' +
@@ -3315,9 +3322,9 @@ const GPK = (() => {
       '<div class="hint">Datum: VN-2000 → WGS84 (7-parameter). Skipped: terrain/contour layers' + (res.skipped.length ? ' (' + res.skipped.length + ')' : '') + '. Re-importing the same project overwrites its previous layers.</div>' +
       '<div class="err" id="mdErr" style="display:none"></div><div class="btns"><button id="gpkCancel">Cancel</button><button class="pri" id="gpkOk">Save to Drive</button></div>', (md) => {
         const inp = md.querySelector('#gpkProj'), warn = md.querySelector('#gpkWarn');
-        const nm = () => (pk ? inp.value.trim().replace(/^(QHPK[\s:\-–_]*)+/i, '') : inp.value.trim());
-        const ten = () => (pk ? 'QHPK - ' : '') + nm();
-        const same = (r) => pk ? isPk(r) && tenHT(r).toLowerCase() === nm().toLowerCase() : r.project.toLowerCase() === ten().toLowerCase();
+        const nm = () => (co_tt ? boTienTo(inp.value.trim()) : inp.value.trim());
+        const ten = () => TIEN_TO[kind] + nm();
+        const same = (r) => co_tt ? kindOf(r) === kind && tenHT(r).toLowerCase() === nm().toLowerCase() : r.project.toLowerCase() === ten().toLowerCase();
         const chk = () => { const v = ten().toLowerCase(); warn.textContent = S.list.some(same) ? '⚠ This project already has layers — they will be replaced.' : pk ? '' : (names.some((n) => n.toLowerCase() === v) ? '' : '⚠ Name does not match any Dashboard project.'); };
         inp.addEventListener('input', chk); chk();
         md.querySelector('#gpkCancel').onclick = () => ADM.closeModal();
@@ -3327,7 +3334,7 @@ const GPK = (() => {
           try {
             const o = await ADM.api({ action: 'saveLayer', project: pj, payload: json });
             ADM.closeModal(); ADM.toast('Saved map layers — ' + pj);
-            const olds = S.list.filter((r) => r.project === o.project || (pk && same(r) && r.id !== o.id)); olds.forEach((old) => { goHet(S.cache[old.id]); delete S.cache[old.id]; delete S.shown[old.id]; if (old.id !== o.id) ADM.api({ action: 'deleteLayer', id: old.id }).catch(() => {}); });
+            const olds = S.list.filter((r) => r.project === o.project || (co_tt && same(r) && r.id !== o.id)); olds.forEach((old) => { goHet(S.cache[old.id]); delete S.cache[old.id]; delete S.shown[old.id]; if (old.id !== o.id) ADM.api({ action: 'deleteLayer', id: old.id }).catch(() => {}); });
             await reload(); const rec = S.list.find((r) => r.id === o.id); if (rec) toggle(rec, true, true);
           } catch (er) { ADM.showErr(String(er.message || er)); ev.target.disabled = false; ev.target.textContent = 'Save to Drive'; }
         };
@@ -4387,7 +4394,8 @@ window.QHPK = QHPK;
         '<div class="mp-gt"><label class="mp-sdd-t"><input type="checkbox" id="gtDs"' + (onDS ? ' checked' : '') + '> <i class="ln ds"></i>Đường sắt đô thị</label>' +
         '<label class="mp-sdd-t"><input type="checkbox" id="gtGt"' + (onGT ? ' checked' : '') + '> <i class="ln gt"></i>Giao thông đô thị</label></div></details>' + dnHtml + '</details>' +
         '<details class="lv1" data-lv="qhpk"' + lvOpen('qhpk', 1) + '><summary>Quy hoạch phân khu (QHPK)</summary><div class="lv-pk"><div class="gp-note">Đang tải…</div></div><div class="lv-pk-gp"></div></details>' +
-        '<details class="lv1" data-lv="qhct"' + lvOpen('qhct', 1) + '><summary>Quy hoạch chi tiết (QHCT)</summary><div class="lv-ct"></div></details></div>';
+        '<details class="lv1" data-lv="qhct"' + lvOpen('qhct', 1) + '><summary>Quy hoạch chi tiết (QHCT)</summary><div class="lv-ct"></div></details>' +
+        '<details class="lv1" data-lv="qhtmb"' + lvOpen('qhtmb', 1) + '><summary>Quy hoạch tổng mặt bằng (QHTMB)</summary><div class="lv-tmb"></div></details></div>';
       d.addEventListener('toggle', (e) => { const t = e.target; if (t.dataset && t.dataset.lv) lsSet('lv_' + t.dataset.lv, t.open ? '1' : '0'); }, true);
       if (window.GPK) GPK.mount(d, map);
       if (window.QHPK) QHPK.mount(d.querySelector('.lv-pk'), map);
