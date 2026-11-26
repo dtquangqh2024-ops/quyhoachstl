@@ -1050,21 +1050,44 @@ svg.leaflet-image-layer.leaflet-interactive path {
     --st-qd: #12805c;   --st-qd-bg: #e5f6ef;
   }
   .lg-wrap { max-width: var(--page-w); margin: 0 auto; padding: 14px 16px 60px; }
-  .lg-subtabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-  .lg-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  .lg-subtabs { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* ===== Thanh đầu trang Pháp lý: tab con + bộ lọc + thống kê + nút icon, gom trên 1 dải (26/11/2026) ===== */
+  .lg-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .lg-head .mp-filt { margin: 0; }
+  .lg-head-act { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; }
+  .ic-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 2px;
+    min-width: 32px; height: 32px; padding: 0 6px; font: inherit; font-size: 15px; line-height: 1;
+    border: 1px solid var(--line); border-radius: 9px; background: var(--card); color: inherit; cursor: pointer;
+  }
+  .ic-btn:hover { background: #eef3fa; }
+  .ic-btn b { font-size: 10.5px; font-weight: 700; }
+  .ic-static { cursor: default; opacity: .7; }
+  .ic-static:hover { background: var(--card); }
+  #lgWarnBtn { color: #8a5200; background: #fff6e8; border-color: #f3d9b0; }
+  #lgWarnBtn[aria-expanded="true"] { background: #f7e2bd; }
+
+  .lg-statbar { display: flex; gap: 6px; flex-wrap: wrap; min-width: 0; }
   .lg-stat {
-    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-    padding: 10px 12px; text-align: left; cursor: pointer; font: inherit;
-    border-left-width: 4px; transition: box-shadow .15s;
+    display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap;
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 5px 10px; text-align: left; cursor: pointer; font: inherit;
+    border-left: 3px solid var(--navy); transition: box-shadow .15s;
   }
   .lg-stat:hover { box-shadow: 0 4px 14px rgba(18,35,63,.08); }
-  .lg-stat.off { opacity: .45; }
-  .lg-stat b { display: block; font-size: 22px; line-height: 1.1; color: var(--ink); font-family: 'Space Grotesk', 'Inter', sans-serif; }
+  .lg-stat[disabled] { cursor: default; }
+  .lg-stat.off { opacity: .45; text-decoration: line-through; }
+  .lg-stat b { font-size: 16px; line-height: 1.1; color: var(--ink); font-family: 'Space Grotesk', 'Inter', sans-serif; }
   .lg-stat span { font-size: 11.5px; color: var(--muted); font-weight: 600; }
   .lg-stat.nc { border-left-color: var(--st-nc); }
   .lg-stat.ctdt { border-left-color: var(--st-ctdt); }
   .lg-stat.qd { border-left-color: var(--st-qd); }
-  @media (max-width: 520px) { .lg-stat b { font-size: 18px; } .lg-stat span { font-size: 10.5px; } }
+  @media (max-width: 520px) {
+    .lg-stat { padding: 4px 8px; gap: 4px; }
+    .lg-stat b { font-size: 14px; }
+    .lg-stat span { font-size: 10.5px; }
+  }
 
   .lg-note {
     font-size: 12.5px; color: #7a4a0a; background: #fff6e8; border: 1px solid #f3d9b0;
@@ -1246,16 +1269,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
   .mp-toolbar select { font: inherit; font-size: 13px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: inherit; max-width: 100%; }
   .mp-toolbar .sp { flex: 1; }
-  .mp-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 4px; }
-  @media (max-width: 640px) { .mp-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  .mp-stat { border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; background: var(--card); border-left: 4px solid var(--navy); display: flex; flex-direction: column; gap: 1px; }
-  .mp-stat[data-st] { cursor: pointer; }
-  .mp-stat.qd { border-left-color: var(--st-qd); } .mp-stat.ctdt { border-left-color: var(--st-ctdt); } .mp-stat.nc { border-left-color: var(--st-nc); }
-  .mp-stat.off { opacity: .45; text-decoration: line-through; }
-  .mp-stat b { font-size: 22px; line-height: 1.1; }
-  .mp-stat span { font-size: 12px; color: var(--muted); }
-  .mp-stat em { font-style: normal; font-size: 12px; font-weight: 600; color: #33415a; min-height: 15px; }
-  .mp-statnote { font-size: 11.5px; color: var(--muted); margin: 0 0 10px; }
+  /* Ô thống kê của tab Bản đồ nay dùng chung .lg-stat trên thanh .lg-head (26/11/2026) */
   .mp-box { position: relative; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
   .ms-on, .ms-on .leaflet-interactive, .ms-on .leaflet-grab { cursor: crosshair !important; }
   .ms-on .leaflet-interactive, .ms-on .leaflet-marker-icon { pointer-events: none !important; }
@@ -1385,20 +1399,14 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mp-tools .chip.active { background: var(--navy); color: #fff; }
 
   @media (min-width: 900px) {
-    .mp-toolbar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-    .mp-toolbar > .sp { display: none; }
-    .mp-filt { grid-column: span 3; }
-    .mp-tools { grid-column: 4; }
-    /* bản đồ 3 cột, danh sách 1 cột — thẳng hàng với 4 ô thống kê */
+    /* bản đồ 3 cột, danh sách 1 cột */
     .mp-layout { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; align-items: stretch; }
     .mp-box { grid-column: span 3; }
     .mp-side { height: calc(68vh + 2px); min-height: 382px; overflow: auto; display: flex; flex-direction: column; }
     .mp-side .mp-list { flex: 1 1 auto; max-height: none; min-height: 150px; }
   }
 
-  /* ===== Bỏ tổng diện tích, ghi chú; thu gọn 2 dòng vàng (19/10) ===== */
-  .mp-stat em, .mp-statnote { display: none; }
-  .mp-stats { margin-bottom: 10px; }
+  /* ===== Thu gọn phần ghi chú trong bảng bên phải (19/10) ===== */
   .mp-side > h3 + .hint { display: none; }
   .mp-side > details.lg-note { padding: 4px 10px; margin: 6px 0 0 !important; font-size: 12.5px; line-height: 1.4; border-radius: 6px; }
   .mp-side > details.lg-note[open] { padding-bottom: 8px; }
@@ -2001,19 +2009,29 @@ nav.main-tabs { top: var(--hh, 0px) !important; z-index: 29; }
 
 <div id="viewLegal" style="display:none">
   <div class="lg-wrap">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-      <div class="lg-subtabs" id="lgSubtabs" style="margin:0">
+    <div class="lg-head">
+      <div class="lg-subtabs" id="lgSubtabs">
         <button class="chip active" data-sub="list">☰ Danh sách</button>
         <button class="chip" data-sub="timeline">🕒 Timeline</button>
         <button class="chip" data-sub="map">🗺 Bản đồ</button>
       </div>
-      <span style="display:inline-flex;align-items:center;gap:8px"><span id="lgUpdated" style="font-size:12px;color:var(--muted)"></span><button class="chip" id="lgSync" title="Quét thư mục Drive của các dự án để điền link văn bản mới">🔄 Quét Drive</button></span>
+      <div class="mp-filt" id="mpFilt" style="display:none">
+        <select id="mpFProv" aria-label="Lọc theo tỉnh/thành"></select>
+        <select id="mpFType" aria-label="Lọc theo thể loại"></select>
+        <select id="mpFNhom" aria-label="Lọc theo nhóm"></select>
+        <button class="chip" id="mpFClear" style="display:none">✕ Bỏ lọc</button>
+      </div>
+      <div class="lg-statbar" id="lgStats"></div>
+      <div class="lg-head-act">
+        <button class="ic-btn" id="lgWarnBtn" type="button" aria-expanded="false" aria-controls="lgWarn" style="display:none" title="Lưu ý về dữ liệu — bấm để xem">⚠<b id="lgWarnN"></b></button>
+        <span class="ic-btn ic-static" id="lgUpdated" title="Chưa tải dữ liệu">🕐</span>
+        <button class="ic-btn" id="lgSync" type="button" title="Quét thư mục Drive của các dự án để điền link văn bản mới">🔄</button>
+      </div>
     </div>
     <div id="lgNotes"></div>
     <div class="lg-empty" id="lgLoading" style="display:none">Đang tải dữ liệu pháp lý từ Google Sheet…</div>
     <div id="lgBody" style="display:none">
-      <div class="lg-stats" id="lgStats"></div>
-      <div id="lgWarn"></div>
+      <div id="lgWarn" hidden></div>
 
       <section id="lgList">
         <div class="search-box" style="box-shadow:none">
@@ -2048,22 +2066,15 @@ nav.main-tabs { top: var(--hh, 0px) !important; z-index: 29; }
       </section>
 
       <section id="lgMap" style="display:none">
+        <!-- Bộ lọc đã chuyển lên .lg-head; khung này chỉ còn cụm nút chế độ xem,
+             và cụm đó được buildMap() chuyển hẳn vào trong khung bản đồ. -->
         <div class="mp-toolbar">
-          <div class="mp-filt">
-          <select id="mpFProv" aria-label="Lọc theo tỉnh/thành"></select>
-          <select id="mpFType" aria-label="Lọc theo thể loại"></select>
-          <select id="mpFNhom" aria-label="Lọc theo nhóm"></select>
-          <button class="chip" id="mpFClear" style="display:none">✕ Bỏ lọc</button>
-          </div>
-          <span class="sp"></span>
           <div class="mp-tools">
             <button class="chip active" id="mpProv" title="Bật/tắt đường địa giới 34 tỉnh/thành"><i class="e">▦</i><span class="t">Địa giới</span></button>
             <button class="chip" id="mpFit" title="Phóng vừa tất cả dự án"><i class="e">⤢</i><span class="t">Xem tất cả</span></button>
             <span id="mpBase"><button class="chip" data-base="osm" title="Streets — bản đồ giao thông"><i class="e">🗺</i><span class="t">Streets</span></button><button class="chip active" data-base="sat" title="Satellite — ảnh vệ tinh"><i class="e">🛰</i><span class="t">Satellite</span></button><button class="chip" data-base="hyb" title="Hybrid — ảnh vệ tinh kèm đường và tên địa danh"><i class="e">🛣</i><span class="t">Hybrid</span></button></span>
           </div>
         </div>
-        <div class="mp-stats" id="mpStats"></div>
-        <p class="mp-statnote" id="mpStatNote"></p>
         <div class="mp-layout">
           <div class="mp-box sat" id="mpBox"><div id="mpLeaf"></div><aside class="mp-left" id="mpLeft"></aside><button type="button" class="mp-ptg mp-ptg-l" id="mpLeftTg" title="Thu/mở danh mục lớp bản đồ">◀</button><button type="button" class="mp-ptg mp-ptg-r" id="mpSideTg" title="Thu/mở bảng thông tin dự án">▶</button><button type="button" class="mp-fsui mp-fsback" id="mpFsBack" title="Thoát toàn màn hình (Esc)">← Quay lại</button><button type="button" class="mp-fsui mp-fslist" id="mpFsList" aria-expanded="false" title="Mở/ẩn danh sách dự án">☰ <span>Dự án</span></button></div>
           <aside class="mp-side" id="mpSide"></aside>
@@ -3789,8 +3800,8 @@ window.QHPK = QHPK;
   async function syncDrive() {
     const b = $('lgSync');
     if (!b || b.disabled) return;
-    const old = b.textContent;
-    b.disabled = true; b.textContent = '⏳ Đang quét Drive…';
+    const old = b.textContent, oldTip = b.title;
+    b.disabled = true; b.textContent = '⏳'; b.title = 'Đang quét Drive…';
     let note = '';
     try {
       const res = await fetch(WEB_APP_URL + '?action=sync' + AUTH.qs(), { cache: 'no-store' });
@@ -3804,26 +3815,35 @@ window.QHPK = QHPK;
       const m = String(err.message || err);
       $('lgNotes').innerHTML = '<div class="lg-note err">Không quét được Drive: ' + esc(/unknown action/i.test(m) ? 'Apps Script chưa là bản Code_v3 (cần dán code mới và Deploy → New version).' : m) + '</div>';
     }
-    b.disabled = false; b.textContent = old;
+    b.disabled = false; b.textContent = old; b.title = oldTip;
   }
 
   /* ---------- hiển thị chung ---------- */
   function renderAll() {
     if (LS.main !== 'legal' || !loaded) return;
-    renderStats();
-    $('lgStats').style.display = LS.sub === 'map' ? 'none' : '';
+    $('mpFilt').style.display = LS.sub === 'map' ? '' : 'none';
+    if (LS.sub !== 'map') renderStats();   // ở tab Bản đồ, renderMap() tự điền thống kê theo bộ lọc
+    stampUpdated();
     renderWarnings();
     if (LS.sub === 'list') renderList();
     else if (LS.sub === 'timeline') renderTimeline();
     else renderMap();
   }
+  /* 1 ô thống kê dùng chung cho cả Danh sách/Timeline và Bản đồ (cùng nằm trên thanh .lg-head) */
+  function statPill(cls, num, label, tip, toggle) {
+    return '<button type="button" class="lg-stat ' + cls + (toggle && !LS.on[cls] ? ' off' : '') + '"'
+      + (toggle ? ' data-st="' + cls + '" aria-pressed="' + LS.on[cls] + '" title="' + esc(tip || 'Bấm để ẩn/hiện nhóm này') + '"'
+                : ' disabled title="' + esc(tip || '') + '"')
+      + '><b>' + num + '</b><span>' + esc(label) + '</span></button>';
+  }
+  function stampUpdated() {
+    const el = $('lgUpdated'); if (!el) return;
+    el.title = lastLoad ? 'Cập nhật lúc ' + lastLoad.toLocaleTimeString('vi-VN') : 'Chưa tải dữ liệu';
+  }
   function renderStats() {
     const cnt = { nc: 0, ctdt: 0, qd: 0 };
     LEGAL.forEach((o) => cnt[o.status]++);
-    $('lgStats').innerHTML = ['qd', 'ctdt', 'nc'].map((k) =>
-      '<button class="lg-stat ' + k + (LS.on[k] ? '' : ' off') + '" data-st="' + k + '" aria-pressed="' + LS.on[k] + '" title="Bấm để ẩn/hiện nhóm này"><b>' + cnt[k] + '</b><span>' + ST[k].label + '</span></button>'
-    ).join('');
-    $('lgUpdated').textContent = lastLoad ? 'Cập nhật lúc ' + lastLoad.toLocaleTimeString('vi-VN') : '';
+    $('lgStats').innerHTML = ORDER.map((k) => statPill(k, cnt[k], ST[k].label, '', true)).join('');
   }
   function renderWarnings() {
     const out = [];
@@ -3840,7 +3860,19 @@ window.QHPK = QHPK;
     if (noPos.length) out.push('<b>' + noPos.length + ' dự án chưa có ranh giới/vị trí</b> nên chưa hiện trên bản đồ (dán link My Maps vào cột "Maps (ranh giới dự án)" ở Dashboard): ' + esc(noPos.join('; ')));
     const hidden = ALL.filter((o) => !o.has && (o.tiendo || o.pct != null || o.note)).map((o) => o.name);
     if (hidden.length) out.push('<b>' + hidden.length + ' dòng đang ẩn</b> vì chưa có chủ trương, quyết định hay vị trí (dù đã ghi tiến độ/ghi chú): ' + esc(hidden.join('; ')));
-    $('lgWarn').innerHTML = out.length ? '<details class="lg-note"><summary>⚠ ' + out.length + ' lưu ý về dữ liệu — bấm để xem</summary><div style="margin-top:6px">' + out.join('<br><br>') + '</div></details>' : '';
+    /* Không chiếm một dòng ngang trang nữa: gom vào nút ⚠ trên thanh đầu, bấm mới mở (26/11/2026) */
+    const btn = $('lgWarnBtn'), box = $('lgWarn');
+    if (!btn || !box) return;
+    if (!out.length) {
+      btn.style.display = 'none'; btn.setAttribute('aria-expanded', 'false');
+      box.hidden = true; box.innerHTML = '';
+      return;
+    }
+    btn.style.display = '';
+    $('lgWarnN').textContent = out.length;
+    btn.title = out.length + ' lưu ý về dữ liệu — bấm để xem';
+    box.innerHTML = '<div class="lg-note">' + out.join('<br><br>') + '</div>';
+    box.hidden = btn.getAttribute('aria-expanded') !== 'true';
   }
   function btn(href, label) { return href ? '<a class="drawing-btn" href="' + esc(href) + '" target="_blank" rel="noopener">' + label + '</a>' : ''; }
   const indBtn = (o, i) => (o.ind && (o.ind.dx || o.ind.ct || o.ind.qd || o.ind.tkcs)) ? '<button class="drawing-btn" data-act="ind" data-i="' + i + '">📊 Chỉ tiêu</button>' : '';
@@ -4676,9 +4708,11 @@ window.QHPK = QHPK;
     const st = { qd: [0, 0], ctdt: [0, 0], nc: [0, 0] };
     let tot = 0, noArea = 0;
     ids.forEach((i) => { const o = LEGAL[i]; st[o.status][0]++; st[o.status][1] += o.areaHa || 0; tot += o.areaHa || 0; if (!o.areaHa) noArea++; });
-    const box = (cls, num, label, ha) => '<div class="mp-stat ' + cls + (cls !== 'all' && !LS.on[cls] ? ' off' : '') + '"' + (cls !== 'all' ? ' data-st="' + cls + '" role="button" tabindex="0" title="Bấm để ẩn/hiện"' : '') + '><b>' + num + '</b><span>' + label + '</span><em>' + (ha == null ? '' : fmtHa(ha) + ' ha') + '</em></div>';
-    $('mpStats').innerHTML = box('all', ids.length, 'Dự án trên bản đồ', tot) + box('qd', st.qd[0], 'Đã có QĐ phê duyệt', st.qd[1]) + box('ctdt', st.ctdt[0], 'Đã duyệt CTĐT', st.ctdt[1]) + box('nc', st.nc[0], 'Đang nghiên cứu', st.nc[1]);
-    $('mpStatNote').textContent = noArea ? 'Diện tích lấy từ dữ liệu nhập ở Dashboard; ' + noArea + ' dự án chưa có số liệu diện tích nên chưa cộng vào.' : 'Diện tích lấy từ dữ liệu nhập ở Dashboard.';
+    const ha = (v) => (v > 0 ? ' · ' + fmtHa(v) + ' ha' : '');
+    const tipAll = 'Tổng' + (tot > 0 ? ' ' + fmtHa(tot) + ' ha' : '') + ' — diện tích lấy từ dữ liệu nhập ở Dashboard'
+      + (noArea ? '; ' + noArea + ' dự án chưa có số liệu diện tích nên chưa cộng vào.' : '.');
+    $('lgStats').innerHTML = statPill('all', ids.length, 'Trên bản đồ', tipAll, false)
+      + ORDER.map((k) => statPill(k, st[k][0], ST[k].label, ST[k].label + ha(st[k][1]) + ' — bấm để ẩn/hiện', true)).join('');
   }
   const firstUrl = (v) => { const m = String(v == null ? '' : v).match(/https?:\/\/[^\s<>"']+/i); return m ? m[0] : ''; };
   const dashBtns = (o) => !o.dash ? '' : btn(firstUrl(o.dash.banveDeXuat), '📐 Bản vẽ đề xuất') + btn(firstUrl(o.dash.video), '🎥 Video hiện trạng');
@@ -4740,6 +4774,12 @@ window.QHPK = QHPK;
     modal.addEventListener('click', (e) => { if (e.target === modal || e.target.closest('[data-ind-close]')) closeInd(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeInd(); });
     const sb = $('lgSync'); if (sb) sb.addEventListener('click', syncDrive);
+    const wb = $('lgWarnBtn');
+    if (wb) wb.addEventListener('click', () => {
+      const open = wb.getAttribute('aria-expanded') !== 'true';
+      wb.setAttribute('aria-expanded', open ? 'true' : 'false');
+      $('lgWarn').hidden = !open;
+    });
     document.querySelectorAll('.main-tab').forEach((b) => b.addEventListener('click', () => setMain(b.dataset.main)));
     document.querySelectorAll('#lgSubtabs .chip').forEach((b) => b.addEventListener('click', () => setSub(b.dataset.sub)));
     $('lgSearch').addEventListener('input', (e) => { LS.search = e.target.value.trim(); renderList(); });
