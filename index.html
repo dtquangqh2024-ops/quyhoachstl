@@ -1267,7 +1267,26 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
   /* ---- Bản đồ Leaflet ---- */
   .mp-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
-  .mp-toolbar select { font: inherit; font-size: 13px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: inherit; max-width: 100%; }
+  /* Ô lọc bản đồ: cùng khuôn với .chip (vuông bo nhẹ, chữ 12.5px), thêm mũi tên tự vẽ */
+  .mp-filt select {
+    -webkit-appearance: none; -moz-appearance: none; appearance: none;
+    font: inherit; font-size: 12.5px; font-weight: 500; line-height: 18px;
+    min-height: 30px; padding: 5px 26px 5px 10px; max-width: 100%;
+    border: 1px solid var(--line); border-radius: 4px;
+    background-color: var(--card); color: var(--muted);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236b7688' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 9px center;
+    cursor: pointer; transition: border-color .15s, background-color .15s, color .15s;
+  }
+  .mp-filt select:hover { border-color: var(--muted); color: var(--ink); }
+  .mp-filt select:focus-visible { outline: 2px solid var(--navy-2); outline-offset: 1px; }
+  /* đang lọc: tô đậm như .chip.active để anh thấy ngay là bộ lọc đang bật */
+  .mp-filt select.on {
+    background-color: var(--navy); border-color: var(--navy); color: #fff; font-weight: 600;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23ffffff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  .mp-filt select.on option { background: var(--card); color: var(--ink); }
+  @media (max-width: 640px) { .mp-filt select { min-height: 34px; padding: 6px 28px 6px 12px; } }
   .mp-toolbar .sp { flex: 1; }
   /* Ô thống kê của tab Bản đồ nay dùng chung .lg-stat trên thanh .lg-head (26/11/2026) */
   .mp-box { position: relative; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
@@ -2018,8 +2037,6 @@ nav.main-tabs { top: var(--hh, 0px) !important; z-index: 29; }
       <div class="mp-filt" id="mpFilt" style="display:none">
         <select id="mpFProv" aria-label="Lọc theo tỉnh/thành"></select>
         <select id="mpFType" aria-label="Lọc theo thể loại"></select>
-        <select id="mpFNhom" aria-label="Lọc theo nhóm"></select>
-        <button class="chip" id="mpFClear" style="display:none">✕ Bỏ lọc</button>
       </div>
       <div class="lg-statbar" id="lgStats"></div>
       <div class="lg-head-act">
@@ -2633,7 +2650,7 @@ async function loadData(isManual) {
     const res = await fetch(WEB_APP_URL + '?action=listProjects' + AUTH.qs(), { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
-    if (json && json.needLogin) { AUTH.logout(); setPageMode(); renderGate(); renderAuthBox(); return; }
+    if (json && json.needLogin) { window.WK_PRE = null; AUTH.logout(); setPageMode(); renderGate(); renderAuthBox(); return; }   // L1: bỏ kết quả prefetch của token cũ, nếu không lần đăng nhập lại sẽ đọc phải nó
     if (json.error) throw new Error(json.error);
     DATA = jsonToData(json);
     loadingEl.style.display = 'none';
@@ -2665,6 +2682,11 @@ if (SHARE_ID) { loadShare(); }
 else if (!AUTH.team()) { renderGate(); }
 else {
   (function () { try { const q = new URLSearchParams(location.search).get('p'); if (q) { const i = document.getElementById('searchInput'); i.value = q; } } catch (e) {} })();
+  /* L1 (27/11/2026): khởi động listWeekly NGAY, song song với listProjects.
+     Trước đây WK.load() chỉ chạy sau khi listProjects xong → hai lần chờ nối đuôi,
+     nên "Loading weeks..." còn quay dù 83/83 dự án đã hiện. */
+  window.WK_PRE = fetch(WEB_APP_URL + '?action=listWeekly' + AUTH.qs(), { cache: 'no-store' });
+  window.WK_PRE.catch(() => {});   // tránh unhandled rejection nếu không ai dùng tới
   loadData(false).then(() => { const i = document.getElementById('searchInput'); if (i && i.value) i.dispatchEvent(new Event('input')); });
 }
 setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
@@ -2737,7 +2759,8 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
 
   WK.load = async function () {
     try {
-      const res = await fetch(WEB_APP_URL + '?action=listWeekly' + AUTH.qs(), { cache: 'no-store' });
+      const pre = window.WK_PRE; window.WK_PRE = null;   // L1: dùng lại lần gọi đã khởi động sớm (chỉ lần tải đầu)
+      const res = pre ? await pre : await fetch(WEB_APP_URL + '?action=listWeekly' + AUTH.qs(), { cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const json = await res.json();
       if (json && json.error) throw new Error(json.error);
@@ -4200,7 +4223,7 @@ window.QHPK = QHPK;
   }
 
   /* ---------- Bản đồ (Leaflet): ranh giới từng dự án ---------- */
-  const MF = { prov: '', type: '', nhom: '' };
+  const MF = { prov: '', type: '' };   // bộ lọc bản đồ (bỏ lọc theo nhóm 26/11/2026)
   const LM = { showProv: true, gProv: null, gProvLbl: null, map: null, built: false, tiles: {}, base: 'sat', gShapes: null, gMarks: null, items: [], sel: -1, needFit: true };
 
   // Diện tích lấy từ Dashboard: cột có tên chứa "diện tích"; nếu không có thì tìm "… ha/m2" trong Tóm tắt dự án, rồi trong tên dự án
@@ -4244,7 +4267,6 @@ window.QHPK = QHPK;
       if (!visible(o) || !(o.shapes || (o.pos && o.pos.ok))) return false;
       if (MF.prov && !(o.prov && o.prov.name === MF.prov)) return false;
       if (MF.type && !(o.dash && o.dash.theloai === MF.type)) return false;
-      if (MF.nhom && !(o.dash && o.dash.nhom === MF.nhom)) return false;
       return true;
     });
   }
@@ -4254,11 +4276,10 @@ window.QHPK = QHPK;
       const el = $(id); const list = [...new Set(vals.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi'));
       if (cur && list.indexOf(cur) < 0) list.push(cur);
       el.innerHTML = '<option value="">' + label + '</option>' + list.map((v) => '<option value="' + esc(v) + '"' + (v === cur ? ' selected' : '') + '>' + esc(v) + '</option>').join('');
+      el.classList.toggle('on', !!cur);   // đang lọc thì tô đậm như .chip.active
     };
     fill('mpFProv', 'Tất cả tỉnh/thành', base.map((o) => (o.prov ? o.prov.name : '')), MF.prov);
     fill('mpFType', 'Tất cả thể loại', base.map((o) => (o.dash ? o.dash.theloai : '')), MF.type);
-    fill('mpFNhom', 'Tất cả nhóm', base.map((o) => (o.dash ? o.dash.nhom : '')), MF.nhom);
-    $('mpFClear').style.display = MF.prov || MF.type || MF.nhom ? '' : 'none';
   }
 
   function buildMap() {
@@ -4800,7 +4821,7 @@ window.QHPK = QHPK;
       const o = BYN.get(norm(b.dataset.n)); if (!o) return;
       if (b.dataset.stl === 'ind') { openInd(o); return; }
       if (b.dataset.stl === 'map' && (o.shapes || (o.pos && o.pos.ok))) {
-        LS.on[o.status] = true; MF.prov = ''; MF.type = ''; MF.nhom = '';
+        LS.on[o.status] = true; MF.prov = ''; MF.type = '';
         if (LS.main !== 'legal') setMain('legal');
         setSub('map'); selectProject(LEGAL.indexOf(o)); window.scrollTo({ top: 0 });
       }
@@ -4813,7 +4834,7 @@ window.QHPK = QHPK;
         const o = LEGAL[+act.dataset.i]; if (!o) return;
         if (act.dataset.act === 'tl') { LS.tlSel = new Set([o.name]); setSub('timeline'); window.scrollTo({ top: 0 }); }
         if (act.dataset.act === 'map' && (o.shapes || (o.pos && o.pos.ok))) {
-          LS.on[o.status] = true; MF.prov = ''; MF.type = ''; MF.nhom = '';
+          LS.on[o.status] = true; MF.prov = ''; MF.type = '';
           setSub('map'); selectProject(LEGAL.indexOf(o)); window.scrollTo({ top: 0 });
         }
         if (act.dataset.act === 'focus') selectProject(+act.dataset.i);
@@ -4824,8 +4845,6 @@ window.QHPK = QHPK;
       if (pick) { selectProject(+pick.dataset.pick); return; }
       if (e.target.closest('#mpBack')) { clearSel(); fitItems(LM.items, 15); return; }
       if (e.target.closest('#mpFit')) { clearSel(); fitItems(LM.items, 15); return; }
-      if (e.target.closest('#mpFClear')) { MF.prov = ''; MF.type = ''; MF.nhom = ''; mapFilterChanged(); return;
-      }
       const lab = e.target.closest('.tl-label[data-i]') || e.target.closest('.tl-mk');
       if (lab) {
         const o = LEGAL[+lab.dataset.i]; if (!o) return;
@@ -4846,7 +4865,7 @@ window.QHPK = QHPK;
       LS.tlSel = cur.size === all.length ? null : cur;
       renderTimeline();
     });
-    [['mpFProv', 'prov'], ['mpFType', 'type'], ['mpFNhom', 'nhom']].forEach((p) => $(p[0]).addEventListener('change', (e) => { MF[p[1]] = e.target.value; mapFilterChanged(); }));
+    [['mpFProv', 'prov'], ['mpFType', 'type']].forEach((p) => $(p[0]).addEventListener('change', (e) => { MF[p[1]] = e.target.value; mapFilterChanged(); }));
     document.querySelectorAll('#mpBase .chip').forEach((c) => c.addEventListener('click', () => setBase(c.dataset.base)));
     window.addEventListener('resize', () => { if (LM.map && LS.main === 'legal' && LS.sub === 'map') LM.map.invalidateSize(); });
     $('mpFsBack').addEventListener('click', () => setFs(false));
