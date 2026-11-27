@@ -2641,16 +2641,55 @@ document.getElementById('viewTableBtn').addEventListener('click', function() {
   document.getElementById('tableWrap').style.display = '';
 });
 
+/* ===== L2 (27/11/2026): gộp 4 lần gọi Apps Script thành 1 (action=bundle) =====
+   Mỗi action tốn 1 lần 302 + 1 lần tải (~1,2-2,3 s), và Apps Script giới hạn số lệnh
+   chạy đồng thời của cùng một người, nên gọi song song vẫn phải xếp hàng bên Google.
+   Gộp lại: 1 lần gọi, 1 hàng đợi.
+   AN TOÀN: nếu backend chưa deploy bản có 'bundle' thì tự quay về gọi lẻ như cũ. */
+const BUNDLE = (function () {
+  /* Hai nhóm, KHÔNG gộp làm một:
+     - main: thứ phải có để vẽ xong màn hình đầu. Gộp chung với nhóm nền sẽ bắt người dùng
+       chờ cả Pháp lý + Chỉ tiêu + mapShapes (riêng mapShapes đo được 3,93 s) rồi mới thấy gì.
+     - bg: tải nền cho tab Pháp lý / Bản đồ, người dùng chưa nhìn tới. */
+  const GROUP = { main: ['listProjects', 'listWeekly'], bg: ['listLegal', 'listIndicators', 'mapShapes'] };
+  const of = (a) => (GROUP.main.indexOf(a) >= 0 ? 'main' : 'bg');
+  const p = { main: null, bg: null }, legacy = { main: false, bg: false }, fresh = { main: false, bg: false };
+  const one = (action) => fetch(WEB_APP_URL + '?action=' + action + AUTH.qs(), { cache: 'no-store' })
+    .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  function startG(g) {
+    legacy[g] = false; fresh[g] = true;
+    p[g] = fetch(WEB_APP_URL + '?action=bundle&want=' + GROUP[g].join(',') + AUTH.qs(), { cache: 'no-store' })
+      .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+    p[g].catch(() => {});          // khỏi unhandled rejection nếu chưa ai dùng tới
+    return p[g];
+  }
+  return {
+    start() { startG('main'); },   // nhóm bg để lúc nào cần mới gọi
+    reset() { p.main = null; p.bg = null; legacy.main = false; legacy.bg = false; fresh.main = false; fresh.bg = false; },
+    renew() { if (!fresh.main) this.reset(); },   // giữ lần gọi sớm ở bootstrap, chỉ làm mới từ lần sau
+    async json(action) {
+      const g = of(action);
+      if (legacy[g]) return one(action);
+      if (!p[g]) startG(g);
+      fresh[g] = false;
+      let j;
+      try { j = await p[g]; } catch (e) { legacy[g] = true; return one(action); }   // lỗi mạng → cách cũ
+      if (j && j.needLogin) return j;                                               // chỗ gọi tự xử lý
+      if (!j || !(action in j)) { legacy[g] = true; return one(action); }           // backend chưa có 'bundle'
+      return j[action];
+    }
+  };
+})();
+
 async function loadData(isManual) {
+  BUNDLE.renew();
   const btn = document.getElementById('refreshBtn');
   const loadingEl = document.getElementById('loadingState');
   const errorEl = document.getElementById('errorState');
   if (isManual) { btn.disabled = true; btn.classList.add('spin'); }
   try {
-    const res = await fetch(WEB_APP_URL + '?action=listProjects' + AUTH.qs(), { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const json = await res.json();
-    if (json && json.needLogin) { window.WK_PRE = null; AUTH.logout(); setPageMode(); renderGate(); renderAuthBox(); return; }   // L1: bỏ kết quả prefetch của token cũ, nếu không lần đăng nhập lại sẽ đọc phải nó
+    const json = await BUNDLE.json('listProjects');
+    if (json && json.needLogin) { BUNDLE.reset(); AUTH.logout(); setPageMode(); renderGate(); renderAuthBox(); return; }   // L1: bỏ kết quả prefetch của token cũ, nếu không lần đăng nhập lại sẽ đọc phải nó
     if (json.error) throw new Error(json.error);
     DATA = jsonToData(json);
     loadingEl.style.display = 'none';
@@ -2682,11 +2721,7 @@ if (SHARE_ID) { loadShare(); }
 else if (!AUTH.team()) { renderGate(); }
 else {
   (function () { try { const q = new URLSearchParams(location.search).get('p'); if (q) { const i = document.getElementById('searchInput'); i.value = q; } } catch (e) {} })();
-  /* L1 (27/11/2026): khởi động listWeekly NGAY, song song với listProjects.
-     Trước đây WK.load() chỉ chạy sau khi listProjects xong → hai lần chờ nối đuôi,
-     nên "Loading weeks..." còn quay dù 83/83 dự án đã hiện. */
-  window.WK_PRE = fetch(WEB_APP_URL + '?action=listWeekly' + AUTH.qs(), { cache: 'no-store' });
-  window.WK_PRE.catch(() => {});   // tránh unhandled rejection nếu không ai dùng tới
+  BUNDLE.start();   // L2: khởi động 1 lần gọi gộp ngay từ đầu (thay cho prefetch riêng của L1)
   loadData(false).then(() => { const i = document.getElementById('searchInput'); if (i && i.value) i.dispatchEvent(new Event('input')); });
 }
 setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
@@ -2759,10 +2794,7 @@ setInterval(() => { if (!SHARE_ID && AUTH.team()) loadData(false); }, 300000);
 
   WK.load = async function () {
     try {
-      const pre = window.WK_PRE; window.WK_PRE = null;   // L1: dùng lại lần gọi đã khởi động sớm (chỉ lần tải đầu)
-      const res = pre ? await pre : await fetch(WEB_APP_URL + '?action=listWeekly' + AUTH.qs(), { cache: 'no-store' });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const json = await res.json();
+      const json = await BUNDLE.json('listWeekly');
       if (json && json.error) throw new Error(json.error);
       if (!Array.isArray(json)) throw new Error('dữ liệu trả về không đúng dạng');
       const logs = new Map(), by = new Map();
@@ -3744,9 +3776,7 @@ window.QHPK = QHPK;
     loading = true;
     if (!loaded) { $('lgLoading').style.display = ''; $('lgBody').style.display = 'none'; }
     try {
-      const res = await fetch(WEB_APP_URL + '?action=listLegal' + AUTH.qs(), { cache: 'no-store' });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const json = await res.json();
+      const json = await BUNDLE.json('listLegal');
       if (json && json.error) throw new Error(json.error);
       if (!Array.isArray(json)) throw new Error('dữ liệu trả về không đúng dạng');
       ALL = normalize(json);
@@ -3774,9 +3804,7 @@ window.QHPK = QHPK;
   async function loadShapes() {
     shapesState = 'loading';
     try {
-      const res = await fetch(WEB_APP_URL + '?action=mapShapes' + AUTH.qs(), { cache: 'no-store' });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const json = await res.json();
+      const json = await BUNDLE.json('mapShapes');
       if (json && json.error) throw new Error(json.error);
       if (!Array.isArray(json)) throw new Error('dữ liệu trả về không đúng dạng');
       SHAPES = new Map();
@@ -3795,9 +3823,7 @@ window.QHPK = QHPK;
     if (indLoading) return;
     indLoading = true; indState = indState === 'ok' ? 'ok' : 'loading';
     try {
-      const res = await fetch(WEB_APP_URL + '?action=listIndicators' + AUTH.qs(), { cache: 'no-store' });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const json = await res.json();
+      const json = await BUNDLE.json('listIndicators');
       if (json && json.error) throw new Error(json.error);
       if (!Array.isArray(json)) throw new Error('dữ liệu trả về không đúng dạng');
       const m = new Map();
